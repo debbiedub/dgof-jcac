@@ -13,7 +13,7 @@ pipeline {
 	else
 	  cp gitclone.out newusk
 	  sed -i '$s/.*USK@/USK@/p;d' newusk
-	  sed -i 's,\(/dgof/[0-9]*/\).*,\1,' newusk
+	  sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
 	  git clone http://localhost:8888/freenet:$(cat newusk) dgof
 	fi
 	'''
