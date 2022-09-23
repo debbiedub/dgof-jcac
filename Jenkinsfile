@@ -21,7 +21,7 @@ node {
 
     map.each { entry ->
       stage(entry.key) {
-        sh "PATH=\$PATH:\$(pwd)/dgof git clone freenet::$entry.value $entry.key"
+        sh 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value $entry.key"
       }
     }
   }
