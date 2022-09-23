@@ -1,5 +1,7 @@
 def map = [
-    'newsite16' : 'USK@UTbgOlck8yonG-PBz3a0IAr2bo4OANpQIS5l7ujQzDg,Uw4kLUKyu5C~zFnGnYXfB9MsutJCgJBg8Cvf9~0GagI,AQACAAE/newsite16/0/'
+    'newsite16' : 'USK@UTbgOlck8yonG-PBz3a0IAr2bo4OANpQIS5l7ujQzDg,Uw4kLUKyu5C~zFnGnYXfB9MsutJCgJBg8Cvf9~0GagI,AQACAAE/newsite16/0/',
+    'newsite17ma' : 'USK@tMV0iY48lEGBOUtztCYemQ~Go7vye-2ZCs9coKGrpKA,aJqVO3DrFKzym8dBaeIv9C27B7Pk7soWYIkJhqVwPDg,AQACAAE/newsite17ma/0/',
+    'newsite17mb' : 'USK@7WGX4ivgcShNlmvabhDDG4SklxGQKZqCkRW5s9Vlx1A,pLI1YJZidELVh6fZweFqI0XgpsNXTnDQZK6DaL~Gll0,AQACAAE/newsite17mb/0/',
     ]
 
 node {
