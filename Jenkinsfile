@@ -26,5 +26,7 @@ node {
         sh 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value $entry.key"
       }
     }
+
+    sleep 10
   }
 }
