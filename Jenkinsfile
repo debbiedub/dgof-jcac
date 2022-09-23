@@ -21,7 +21,7 @@ pipeline {
     }
     stage('newsite16') {
       steps {
-        sh "PATH=$PATH:$(pwd)/dgof git clone freenet::USK@UTbgOlck8yonG-PBz3a0IAr2bo4OANpQIS5l7ujQzDg,Uw4kLUKyu5C~zFnGnYXfB9MsutJCgJBg8Cvf9~0GagI,AQACAAE/newsite16/0/ newsite16"
+        sh 'PATH=$PATH:$(pwd)/dgof git clone freenet::USK@UTbgOlck8yonG-PBz3a0IAr2bo4OANpQIS5l7ujQzDg,Uw4kLUKyu5C~zFnGnYXfB9MsutJCgJBg8Cvf9~0GagI,AQACAAE/newsite16/0/ newsite16'
       }
     }
   }
