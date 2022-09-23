@@ -3,6 +3,7 @@ def map = [
     ]
 
 node {
+  deleteDir()
   docker.image('python:3').withRun('--network=host') { c ->
     stage('Get dgof') {
       sh '''
