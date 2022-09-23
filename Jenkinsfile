@@ -1,6 +1,7 @@
 pipeline {
   agent { docker {
       image 'python:3'
+      args '--network=host'
     }
   }
   stages {
