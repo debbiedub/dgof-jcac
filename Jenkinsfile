@@ -6,7 +6,7 @@ def map = [
 
 node {
   deleteDir()
-  docker.image('python:3').withRun('--network=host') { c ->
+  docker.image('python:3').inside('--network=host') {
     stage('Get dgof') {
       sh '''
 	if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/22/ dgof 2> gitclone.out
@@ -26,7 +26,5 @@ node {
         sh 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value $entry.key"
       }
     }
-
-    sleep 10
   }
 }
