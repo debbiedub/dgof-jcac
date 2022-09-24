@@ -41,8 +41,8 @@ node ('debbies') {
       map.each { entry ->
         stage(entry.key) {
           catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {      
-            def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value newclone$entry.key && rm -rf newclone$entry.key"
-            sh "if [ -d $entry.key ]; then ( cd $entry.key && git fetch origin && git push freenet ); else git clone https://gitlab.com/freenet/$entry.key $entry.key --mirror; fi"
+            def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
+            sh "if [ -d $entry.key ]; then ( cd $entry.key && git fetch origin && git push freenet ); else git clone https://github.com/freenet/$entry.key $entry.key --mirror; fi"
             if (cloneFailed != 0) {
               sh "freesitemgr reinsert $entry.key"
               sh 'exit 1' // The clone failed
