@@ -32,6 +32,7 @@ def freesitemgrdir = '/home/debbiedub/.freesitemgr'
 def mirrors = '/home/debbiedub/JenkinsSlave/mirrors'
 
 node ('debbies') {
+  deleteDir()
   docker.image('python:3').inside("--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:$freesitemgrdir") {
     withPythonEnv('python3') {
       stage('Get pyFreenet3') {
