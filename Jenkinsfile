@@ -20,10 +20,12 @@
 
 def map = [
     // 'fred' :                   'fred/0',
+    // 'guile-freenet' :          'guile-freenet/0',
+    // 'jfniki' :                 'jfniki/0',
     // 'locutus' :                'locutus/0',
     'plugin-Spider' :           'plugin-Spider/0',
     // 're-stream-into-freenet' : 're-stream-into-freenet/0',
-    // 'website' :                'plugin-Spider/0',
+    'website' :                 'plugin-Spider/0',
     // 'wintray' :                'wintray/0',
     ]
 
