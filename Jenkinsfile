@@ -2,9 +2,14 @@
 // 1. Install pyFreenet3 (could be prepared in the docker image used)
 // 2. "install" dgof     (could be prepared in the docker image used)
 //
-// The logic for every repo
+// The logic for every repo:
+// outside of Jenkins:
+// 1. git clone --mirror
+// 2. dgof_setup --as-maintainer
+//
+// within this job
 // 1. clone and throw the clone away
-// 2. pull from github
+// 2. fetch from github
 // 3. Push to freenet
 // 4. If the clone didn't work, reinsert. The reinsert will abort if pushing.
 //
@@ -14,7 +19,8 @@
 // I will work with stages instead.
 
 def map = [
-    'plugin-Spider' : 'USK@UTbgOlck8yonG-PBz3a0IAr2bo4OANpQIS5l7ujQzDg,Uw4kLUKyu5C~zFnGnYXfB9MsutJCgJBg8Cvf9~0GagI,AQACAAE/newsite16/1/',
+    'plugin-Spider' : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/plugin-Spider/0',
+    'website'       : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/plugin-Spider/0',
     ]
 
 node ('debbies') {
@@ -41,7 +47,7 @@ node ('debbies') {
         stage(entry.key) {
           catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {      
             def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
-            sh "if [ -d $entry.key ]; then ( cd $entry.key && git fetch origin && git push freenet ); else git clone https://github.com/freenet/$entry.key $entry.key --mirror; fi"
+            sh "cd /home/debbiedub/JenkinsSlave/mirrors/$entry.key && git fetch origin && git push freenet"
             if (cloneFailed != 0) {
               sh "freesitemgr reinsert $entry.key"
               sh 'exit 1' // The clone failed
