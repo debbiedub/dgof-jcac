@@ -18,7 +18,6 @@ def map = [
     ]
 
 node ('debbies') {
-  deleteDir()
   docker.image('python:3').inside("--network=host --env HOME='${env.WORKSPACE}'") {
     withPythonEnv('python3') {
       stage('Get pyFreenet3') {
