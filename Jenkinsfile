@@ -22,9 +22,12 @@ def map = [
     'plugin-Spider' : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/plugin-Spider/0',
     //     'website'       : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/plugin-Spider/0',
     ]
+def dgofdir = '/home/debbiedub/.dgof_sites'
+def freesitemgrdir = '/home/debbiedub/.freesitemgr'
+def mirrors = '/home/debbiedub/JenkinsSlave/mirrors'
 
 node ('debbies') {
-  docker.image('python:3').inside("--network=host --env HOME='${env.WORKSPACE}'") {
+  docker.image('python:3').inside("--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:$freesitemgrdir") {
     withPythonEnv('python3') {
       stage('Get pyFreenet3') {
         sh 'pip3 install pyFreenet3'
@@ -47,7 +50,7 @@ node ('debbies') {
         stage(entry.key) {
           catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {      
             def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
-            sh "cd /home/debbiedub/JenkinsSlave/mirrors/$entry.key && git fetch origin && git push freenet"
+            sh "cd $mirrors/$entry.key && git fetch origin && git push freenet"
             if (cloneFailed != 0) {
               sh "freesitemgr reinsert $entry.key"
               sh 'exit 1' // The clone failed
