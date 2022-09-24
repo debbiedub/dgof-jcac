@@ -14,7 +14,7 @@ def map = [
     'newsite17mb' : 'USK@7WGX4ivgcShNlmvabhDDG4SklxGQKZqCkRW5s9Vlx1A,pLI1YJZidELVh6fZweFqI0XgpsNXTnDQZK6DaL~Gll0,AQACAAE/newsite17mb/1/',
     ]
 
-node (label: debbies) {
+node ('debbies') {
   deleteDir()
   docker.image('python:3').inside('--network=host') {
     stage('Get dgof') {
