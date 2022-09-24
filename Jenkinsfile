@@ -21,7 +21,9 @@ node ('debbies') {
   deleteDir()
   docker.image('python:3').inside('--network=host') {
     stage('Get pyFreenet3') {
-      sh 'pip3 install pyFreenet3'
+      withPythonEnv('pyfreenet') {
+        sh 'pip3 install pyFreenet3'
+      }
     }
     stage('Get dgof') {
       sh '''
@@ -41,10 +43,12 @@ node ('debbies') {
       stage(entry.key) {
         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {      
           def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value newclone$entry.key && rm -rf newclone$entry.key"
-	  sh "if [ -d $entry.key ]; then ( cd $entry.key && git fetch origin && git push freenet ); else git clone https://gitlab.com/freenet/$entry.key $entry.key --mirror; done"
-	  if (cloneFailed != 0) {
-	    sh "freesitemgr reinsert $entry.key"
-	    sh 'exit 1' // The clone failed
+          withPythonEnv('pyfreenet') {
+            sh "if [ -d $entry.key ]; then ( cd $entry.key && git fetch origin && git push freenet ); else git clone https://gitlab.com/freenet/$entry.key $entry.key --mirror; done"
+            if (cloneFailed != 0) {
+              sh "freesitemgr reinsert $entry.key"
+              sh 'exit 1' // The clone failed
+	    }
 	  }
 	}
       }
