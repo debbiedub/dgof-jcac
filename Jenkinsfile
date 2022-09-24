@@ -19,7 +19,7 @@ def map = [
 
 node ('debbies') {
   deleteDir()
-  withPythonEnv('venv') {
+  withPythonEnv('python3') {
     docker.image('python:3').inside('--network=host') {
       stage('Get pyFreenet3') {
         sh 'pip3 install pyFreenet3'
