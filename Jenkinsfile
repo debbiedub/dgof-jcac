@@ -19,14 +19,17 @@
 // I will work with stages instead.
 
 def map = [
-    // 'fred' :                   'fred/0',
-    // 'guile-freenet' :          'guile-freenet/0',
-    // 'jfniki' :                 'jfniki/0',
-    // 'locutus' :                'locutus/0',
-    'plugin-Spider' :           'plugin-Spider/0',
-    // 're-stream-into-freenet' : 're-stream-into-freenet/0',
-    'website' :                 'plugin-Spider/0',
-    // 'wintray' :                'wintray/0',
+    // 'fred' : '0',
+    // 'guile-freenet' : '0',
+    // 'jfniki' : '0',
+    // 'locutus' : '0',
+    'plugin-Spider' : '0',
+    // 'pyFreenet' : '0',
+    // 're-stream-into-freenet' : '0',
+    // 'scritps' : '0',
+    // 'seedrefs' : '0',
+    'website' : '0',
+    // 'wintray' : '0',
     ]
 
 def fetchURI = 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/'
@@ -59,7 +62,7 @@ node ('debbies') {
       map.each { entry ->
         stage(entry.key) {
           catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {      
-            def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
+            def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$entry.key/$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
             sh "cd $mirrors/$entry.key && git fetch origin && git push freenet"
             if (cloneFailed != 0) {
               sh "freesitemgr reinsert $entry.key"
