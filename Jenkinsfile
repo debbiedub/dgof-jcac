@@ -61,7 +61,7 @@ def map = [
     'wiki' : '0',
     // 'wininstaller-innosetup' : '0',
     // 'wininstaller' : '0',
-    // 'wintray' : '0',
+    'wintray' : '0',
     ]
 
 def fetchURI = 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/'
