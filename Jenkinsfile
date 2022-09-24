@@ -19,38 +19,36 @@ def map = [
 
 node ('debbies') {
   deleteDir()
-  docker.image('python:3').inside('--network=host') {
-    stage('Get pyFreenet3') {
-      withPythonEnv('pyfreenet') {
+  withPythonEnv('venv') {
+    docker.image('python:3').inside('--network=host') {
+      stage('Get pyFreenet3') {
         sh 'pip3 install pyFreenet3'
       }
-    }
-    stage('Get dgof') {
-      sh '''
-	if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/22/ dgof 2> gitclone.out
-	then
-	  cat gitclone.out 1>&2
-	else
-	  cp gitclone.out newusk
-	  sed -i '$s/.*USK@/USK@/p;d' newusk
-	  sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
-	  git clone http://localhost:8888/freenet:$(cat newusk) dgof
-	fi
-	'''
-    }
+      stage('Get dgof') {
+        sh '''
+          if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/22/ dgof 2> gitclone.out
+          then
+            cat gitclone.out 1>&2
+          else
+            cp gitclone.out newusk
+            sed -i '$s/.*USK@/USK@/p;d' newusk
+            sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
+            git clone http://localhost:8888/freenet:$(cat newusk) dgof
+          fi
+          '''
+      }
 
-    map.each { entry ->
-      stage(entry.key) {
-        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {      
-          def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value newclone$entry.key && rm -rf newclone$entry.key"
-          withPythonEnv('pyfreenet') {
+      map.each { entry ->
+        stage(entry.key) {
+          catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {      
+            def cloneFailed = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$entry.value newclone$entry.key && rm -rf newclone$entry.key"
             sh "if [ -d $entry.key ]; then ( cd $entry.key && git fetch origin && git push freenet ); else git clone https://gitlab.com/freenet/$entry.key $entry.key --mirror; done"
             if (cloneFailed != 0) {
               sh "freesitemgr reinsert $entry.key"
               sh 'exit 1' // The clone failed
-	    }
-	  }
-	}
+            }
+          }
+        }
       }
     }
   }
