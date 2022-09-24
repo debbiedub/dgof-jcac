@@ -19,9 +19,14 @@
 // I will work with stages instead.
 
 def map = [
+    // 'fred' : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/fred/0',
+    // 'locutus' : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/locutus/0',
     'plugin-Spider' : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/plugin-Spider/0',
+    // 're-stream-into-freenet' : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/re-stream-into-freenet/0',
     //     'website'       : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/plugin-Spider/0',
+    // 'wintray' : 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/wintray/0',
     ]
+
 def dgofdir = '/home/debbiedub/.dgof_sites'
 def freesitemgrdir = '/home/debbiedub/.freesitemgr'
 def mirrors = '/home/debbiedub/JenkinsSlave/mirrors'
