@@ -54,7 +54,7 @@ def map = [
     'pyFreenet' : '0',
     // 'pyProbe' : '0',
     're-stream-into-freenet' : '0',
-    'scritps' : '0',
+    'scripts' : '0',
     'seedrefs' : '0',
     'website' : '0',
     // 'website-old' : '0',
