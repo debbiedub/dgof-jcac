@@ -19,7 +19,7 @@
 // I will work with stages instead.
 
 def map = [
-    'app' : '0',
+    'app' : '1',
     'browser' : '0',
     'contrib' : '0',
     'fred' : '0',
@@ -36,7 +36,7 @@ def map = [
     'lib-AdaFN' : '0',
     'lib-jfcp' : '0',
     'locutus' : '0',
-    // 'mactray' : '1',
+    'mactray' : '1',
     'N2NChat' : '0',
     'node-wrapper' : '0',
     'plugin-FlogHelper' : '0',
@@ -59,7 +59,7 @@ def map = [
     'website' : '0',
     'website-old' : '0',
     'wiki' : '0',
-    // 'wininstaller-innosetup' : '1',
+    'wininstaller-innosetup' : '1',
     'wininstaller' : '0',
     'wintray' : '0',
     ]
@@ -79,7 +79,7 @@ node ('debbies') {
       }
       stage('Get dgof') {
         sh '''
-          if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/22/ dgof 2> gitclone.out
+          if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
           then
             cat gitclone.out 1>&2
           else
