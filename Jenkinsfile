@@ -97,18 +97,18 @@ RUN pip3 install pyFreenet3
 
     map.each { entry ->
       stage(entry.key) {
-        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {      
-          boolean succeeded = false
-	  retry (5) {
-	    sleep 30
-	    sh 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$entry.key/$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
+        boolean succeeded = false
+        for (int i = 0; i < 5 && !succeeded; i++) {
+	  sleep(1 + 20 * i)
+	  int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$entry.key/$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
+	  if (result == 0) {
 	    succeeded = true
 	  }
-          sh "cd $mirrors/$entry.key && git fetch origin && git push freenet"
-          if (!succeeded) {
-            sh "freesitemgr reinsert $entry.key"
-            sh 'exit 1' // The clone failed
-          }
+	}
+        sh "cd $mirrors/$entry.key && git fetch origin && git push freenet"
+        if (!succeeded) {
+          sh "freesitemgr reinsert $entry.key"
+          sh 'exit 1' // The clone failed
         }
       }
     }
