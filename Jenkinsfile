@@ -72,6 +72,11 @@ def mirrors = '/home/debbiedub/JenkinsSlave/mirrors'
 
 node ('debbies') {
   deleteDir()
+  writeFile file:'Dockerfile', text: '''
+FROM python:3
+
+RUN pip3 install pyFreenet3
+  '''
   docker.build('pyfreenet:3').inside("--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:$freesitemgrdir") {
     stage('Get dgof') {
       sh '''
