@@ -77,7 +77,10 @@ FROM python:3
 
 RUN pip3 install pyFreenet3
   '''
-  docker.build('pyfreenet:3').inside("--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:$freesitemgrdir") {
+  // freesitemgr uses $HOME to find its dir (really os.path.expanduser("~"))
+  // Both freesitemgr config and mirrors config points to dgof dir
+  // using absolute path.
+  docker.build('pyfreenet:3').inside("--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr") {
     stage('Get dgof') {
       sh '''
         if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
