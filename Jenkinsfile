@@ -99,12 +99,12 @@ RUN pip3 install pyFreenet3
       stage(entry.key) {
         boolean succeeded = false
         for (int i = 0; i < 5 && !succeeded; i++) {
-	  sleep(1 + 20 * i)
-	  int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$entry.key/$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
-	  if (result == 0) {
-	    succeeded = true
-	  }
-	}
+          sleep(1 + 20 * i)
+          int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$entry.key/$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
+          if (result == 0) {
+            succeeded = true
+          }
+        }
         sh "cd $mirrors/$entry.key && git fetch --all && git push freenet"
         if (!succeeded) {
           sh "freesitemgr reinsert $entry.key"
