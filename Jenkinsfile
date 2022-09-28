@@ -108,7 +108,6 @@ RUN pip3 install pyFreenet3
         sh "cd $mirrors/$entry.key && git fetch --all && git push freenet"
         if (!succeeded) {
           sh "freesitemgr reinsert $entry.key"
-          sh 'exit 1' // The clone failed
         }
       }
     }
