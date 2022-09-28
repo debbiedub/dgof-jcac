@@ -19,7 +19,7 @@
 // I will work with stages instead.
 
 def map = [
-    'app' : '1',
+    'app' : '2',
     'browser' : '0',
     'contrib' : '0',
     'fred' : '0',
@@ -35,7 +35,7 @@ def map = [
     'kweb-up-poc' : '0',
     'lib-AdaFN' : '0',
     'lib-jfcp' : '0',
-    'locutus' : '0',
+    'locutus' : '2',
     'mactray' : '1',
     'N2NChat' : '0',
     'node-wrapper' : '0',
@@ -108,6 +108,7 @@ RUN pip3 install pyFreenet3
         sh "cd $mirrors/$entry.key && git fetch --all && git push freenet"
         if (!succeeded) {
           sh "freesitemgr reinsert $entry.key"
+	  unstable "Could not clone the repo. Repo reinserted."
         }
       }
     }
