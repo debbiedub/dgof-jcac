@@ -18,52 +18,6 @@
 // The Organization plugin requires the Jenkinsfile to be in the repo.
 // I will work with stages instead.
 
-def map = [
-    'app' : '2',
-    'browser' : '0',
-    'contrib' : '0',
-    'fred' : '0',
-    'free-chat-2' : '0',
-    'flircp' : '0',
-    'generate-media-site' : '0',
-    'guile-freenet' : '0',
-    'Icicle' : '0',
-    'infocalypse' : '0',
-    'java_installer' : '0',
-    'jfniki' : '0',
-    'jSite' : '0',
-    'kweb-up-poc' : '0',
-    'lib-AdaFN' : '0',
-    'lib-jfcp' : '0',
-    'locutus' : '2',
-    'mactray' : '1',
-    'N2NChat' : '0',
-    'node-wrapper' : '0',
-    'plugin-FlogHelper' : '0',
-    'plugin-Freemail' : '0',
-    'plugin-Freetalk' : '0',
-    'plugin-KeepAlive' : '0',
-    'plugin-KeyUtils' : '0',
-    'plugin-Library' : '0',
-    'plugin-Spider' : '0',
-    'plugin-sharesite' : '0',
-    'plugin-UPnP2' : '0',
-    'plugin-UPnP' : '0',
-    'plugin-WebOfTrust' : '0',
-    'plugins' : '0',
-    'pyFreenet' : '0',
-    'pyProbe' : '0',
-    're-stream-into-freenet' : '0',
-    'scripts' : '0',
-    'seedrefs' : '0',
-    'website' : '0',
-    'website-old' : '0',
-    'wiki' : '0',
-    'wininstaller-innosetup' : '1',
-    'wininstaller' : '0',
-    'wintray' : '0',
-    ]
-
 def fetchURI = 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/'
 
 def dgofdir = '/home/debbiedub/.dgof_sites'
@@ -95,19 +49,25 @@ RUN pip3 install pyFreenet3
         '''
     }
 
-    map.each { entry ->
-      stage(entry.key) {
+    def dirnames = []
+    new File(mirrors).eachDir { dir ->
+      dirnames.add(dir.name)
+    }
+    dirnames.sort().each { dirname ->
+      stage(dirname) {
         boolean succeeded = false
         for (int i = 0; i < 5 && !succeeded; i++) {
           sleep(1 + 20 * i)
-          int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$entry.key/$entry.value newclone-$entry.key && rm -rf newclone-$entry.key"
+	  sh 'rm -rf newclone'
+          int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$dirname/0 newclone"
           if (result == 0) {
             succeeded = true
           }
+	  sh 'rm -rf newclone'
         }
-        sh "cd $mirrors/$entry.key && git fetch --all && git push freenet"
+        sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
         if (!succeeded) {
-          sh "freesitemgr reinsert $entry.key"
+          sh "freesitemgr reinsert $dirname"
 	  unstable "Could not clone the repo. Repo reinserted."
         }
       }
