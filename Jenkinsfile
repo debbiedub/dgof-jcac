@@ -49,11 +49,8 @@ RUN pip3 install pyFreenet3
         '''
     }
 
-    def dirnames = []
-    new File(mirrors).eachDir { dir ->
-      dirnames.add(dir.name)
-    }
-    dirnames.sort().each { dirname ->
+    def files_list = sh (script: "ls $mirrors", returnStdout: true).trim()
+    for (String dirname : files_list.split("\\r?\\n")) {
       stage(dirname) {
         boolean succeeded = false
         for (int i = 0; i < 5 && !succeeded; i++) {
