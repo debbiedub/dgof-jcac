@@ -9,14 +9,11 @@
 //
 // within this job
 // 1. clone and throw the clone away
-// 2. fetch from github
+// 2. fetch according to the repos' config
 // 3. Push to freenet
 // 4. If the clone didn't work, reinsert. The reinsert will abort if pushing.
 //
 // Fetch-URI in the script. Private-URI in the freesitemgr config.
-//
-// The Organization plugin requires the Jenkinsfile to be in the repo.
-// I will work with stages instead.
 
 def fetchURI = 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/'
 
