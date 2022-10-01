@@ -66,5 +66,17 @@ RUN pip3 install pyFreenet3
         }
       }
     }
+
+    stage('wait for uploads') {
+      retry (10) {
+        // If any still inserting, we try again
+        // This retry works as a while with limited amount of attempts
+        sh """if freesitemgr update `ls $mirrors` | grep 'still inserting'
+              then
+                  sleep 40
+                  false
+              fi"""
+      }
+    }
   }
 }
