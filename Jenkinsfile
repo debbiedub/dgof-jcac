@@ -50,8 +50,8 @@ RUN pip3 install pyFreenet3
     for (String dirname : files_list.split("\\r?\\n")) {
       stage(dirname) {
         boolean succeeded = false
-        for (int i = 0; i < 5 && !succeeded; i++) {
-          sleep(1 + 20 * i)
+        for (int i = 0; i < 20 && !succeeded; i++) {
+          sleep(1 + 8 * i)
 	  sh 'rm -rf newclone'
           int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$dirname/0 newclone"
           if (result == 0) {
@@ -68,12 +68,12 @@ RUN pip3 install pyFreenet3
     }
 
     stage('wait for uploads') {
-      retry (10) {
+      retry (15) {
         // If any still inserting, we try again
         // This retry works as a while with limited amount of attempts
         sh """if freesitemgr update `ls $mirrors` | grep 'still inserting'
               then
-                  sleep 40
+                  sleep 100
                   false
               fi"""
       }
