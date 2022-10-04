@@ -53,7 +53,7 @@ RUN pip3 install pyFreenet3
         for (int i = 0; i < 20 && !succeeded; i++) {
           sleep(1 + 8 * i)
 	  sh 'rm -rf newclone'
-          int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$dirname/0 newclone"
+          int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$dirname/1 newclone"
           if (result == 0) {
             succeeded = true
           }
