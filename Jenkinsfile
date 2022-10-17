@@ -50,8 +50,10 @@ RUN pip3 install pyFreenet3
     for (String dirname : files_list.split("\\r?\\n")) {
       stage(dirname) {
         boolean succeeded = false
-        for (int i = 0; i < 20 && !succeeded; i++) {
-          sleep(1 + 8 * i)
+        for (int i = 0; i < 5 && !succeeded; i++) {
+	  // The recent cache is 1800s in the default configuration
+	  // It is pointless to hit again before that is aged.
+          sleep(1850 + 8 * i)
 	  sh 'rm -rf newclone'
           int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$dirname/1 newclone"
           if (result == 0) {
