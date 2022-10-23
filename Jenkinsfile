@@ -32,6 +32,8 @@ RUN pip3 install pyFreenet3
   // Both freesitemgr config and mirrors config points to dgof dir
   // using absolute path.
   docker.build('pyfreenet:3').inside("--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr") {
+
+
     stage('Get dgof') {
       sh '''
         if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
@@ -45,6 +47,7 @@ RUN pip3 install pyFreenet3
         fi
         '''
     }
+
 
     def files_list = sh (script: "ls $mirrors", returnStdout: true).trim()
     for (String dirname : files_list.split("\\r?\\n")) {
@@ -69,6 +72,7 @@ RUN pip3 install pyFreenet3
         }
       }
     }
+
 
     stage('wait for uploads') {
       retry (15) {
