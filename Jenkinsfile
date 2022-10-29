@@ -13,13 +13,13 @@
 // 3. Push to freenet
 // 4. If the clone didn't work, reinsert. The reinsert will abort if pushing.
 //
-// Fetch-URI in the script. Private-URI in the freesitemgr config.
+// Fetch-URI is in the Jenkins settings. Private-URI in the freesitemgr config.
 
-def fetchURI = 'USK@Mm9MIkkeQhs~OMiCQ~83Vs48EvNwVRxjfeoFMOQHUYI,AxOZEuOyRM7oJjU43HFErhVw06ZIJLb8GMKNheWR3g4,AQACAAE/'
+def fetchURI = "${env.FETCH_URI}"
 
 def dgofdir = '/home/debbiedub/.dgof_sites'
 def freesitemgrdir = '/home/debbiedub/.freesitemgr'
-def mirrors = '/home/debbiedub/JenkinsSlave/mirrors'
+def mirrors = "${env.MIRRORS_DIR}"
 
 node ('debbies') {
   deleteDir()
