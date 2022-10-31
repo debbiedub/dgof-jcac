@@ -57,7 +57,7 @@ RUN pip3 install pyFreenet3
 	  // The recent cache is 1800s in the default configuration
 	  // It is pointless to hit again before that is aged.
 	  sh 'rm -rf newclone'
-          int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$dirname/1 newclone"
+          int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$dirname/1 newclone"
           if (result == 0) {
             succeeded = true
 	    continue
