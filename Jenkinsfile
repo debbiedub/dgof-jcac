@@ -21,6 +21,20 @@ def dgofdir = '/home/debbiedub/.dgof_sites'
 def freesitemgrdir = '/home/debbiedub/.freesitemgr'
 def mirrors = "${env.MIRRORS_DIR}"
 
+def waitForUpdatesToComplete(laps) {
+  retry (laps) {
+    // If any still inserting, we try again
+    // This retry works as a while with limited amount of attempts
+    sh """freesitemgr update `ls $mirrors` > output.txt
+          cat output.txt
+          if grep 'still inserting' < output.txt
+          then
+              sleep 100
+              false
+          fi"""
+  }
+}
+
 node ('debbies') {
   deleteDir()
   writeFile file:'Dockerfile', text: '''
@@ -65,7 +79,6 @@ RUN pip3 install pyFreenet3
 	  sh 'rm -rf newclone'
           sleep(1850 + 8 * i)
         }
-        sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
         if (!succeeded) {
           sh "freesitemgr reinsert $dirname"
 	  unstable "Could not clone the repo. Repo reinserted."
@@ -73,19 +86,15 @@ RUN pip3 install pyFreenet3
       }
     }
 
+    stage('wait for reinserts') {
+      waitForUpdatesToComplete(15)
+    }
 
-    stage('wait for uploads') {
-      retry (15) {
-        // If any still inserting, we try again
-        // This retry works as a while with limited amount of attempts
-        sh """freesitemgr update `ls $mirrors` > output.txt
-              cat output.txt
-              if grep 'still inserting' < output.txt
-              then
-                  sleep 100
-                  false
-              fi"""
+    stage('update') {
+      for (String dirname : files_list.split("\\r?\\n")) {
+        sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
       }
+      waitForUpdatesToComplete(15)
     }
   }
 }
