@@ -21,7 +21,7 @@ def dgofdir = '/home/debbiedub/.dgof_sites'
 def freesitemgrdir = '/home/debbiedub/.freesitemgr'
 def mirrors = "${env.MIRRORS_DIR}"
 
-def waitForUpdatesToComplete(laps) {
+def waitForUpdatesToComplete(mirrors, laps) {
   retry (laps) {
     // If any still inserting, we try again
     // This retry works as a while with limited amount of attempts
@@ -87,14 +87,14 @@ RUN pip3 install pyFreenet3
     }
 
     stage('wait for reinserts') {
-      waitForUpdatesToComplete(15)
+      waitForUpdatesToComplete(mirrors, 15)
     }
 
     stage('update') {
       for (String dirname : files_list.split("\\r?\\n")) {
         sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
       }
-      waitForUpdatesToComplete(15)
+      waitForUpdatesToComplete(mirrors, 15)
     }
   }
 }
