@@ -87,7 +87,7 @@ RUN pip3 install pyFreenet3
     }
 
     stage('wait for reinserts') {
-      waitForUpdatesToComplete(mirrors, 15)
+      waitForUpdatesToComplete(mirrors, 30)
     }
 
     stage('update') {
