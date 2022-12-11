@@ -68,19 +68,19 @@ RUN pip3 install pyFreenet3
       stage(dirname) {
         boolean succeeded = false
         for (int i = 0; i < 5 && !succeeded; i++) {
-	  // The recent cache is 1800s in the default configuration
-	  // It is pointless to hit again before that is aged.
-	  sh 'rm -rf newclone'
+          // The recent cache is 1800s in the default configuration
+          // It is pointless to hit again before that is aged.
+          sh 'rm -rf newclone'
           int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$dirname/1 newclone"
           if (result == 0) {
             succeeded = true
-	    continue
+            continue
           }
           sleep(1850 + 8 * i)
         }
         if (!succeeded) {
           sh "freesitemgr reinsert $dirname"
-	  unstable "Could not clone the repo. Repo reinserted."
+          unstable "Could not clone the repo. Repo reinserted."
         }
         sh 'rm -rf newclone'
       }
