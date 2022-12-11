@@ -8,10 +8,11 @@
 // 2. dgof_setup --as-maintainer
 //
 // within this job
-// 1. clone and throw the clone away
-// 2. fetch according to the repos' config
-// 3. Push to freenet
-// 4. If the clone didn't work, reinsert. The reinsert will abort if pushing.
+// 1. Clone and throw the clone away.
+// 2. If the clone didn't work, reinsert.
+// 3. Wait for the reinserts to complete in all projects.
+// 4. Fetch all and push to freenet.
+// 5. Wait for push to complete in all projects.
 //
 // Fetch-URI is in the Jenkins settings. Private-URI in the freesitemgr config.
 
