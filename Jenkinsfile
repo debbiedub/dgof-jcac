@@ -4,8 +4,9 @@
 //
 // The logic for every repo:
 // outside of Jenkins:
-// 1. git clone --mirror
-// 2. dgof_setup --as-maintainer
+// 1. git clone --mirror URL name
+//    name is specified to not get the the .git suffix
+// 2. dgof-setup --as-maintainer name (after doing cd name)
 //
 // within this job
 // 1. Clone and throw the clone away.
