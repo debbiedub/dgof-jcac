@@ -76,13 +76,13 @@ RUN pip3 install pyFreenet3
             succeeded = true
 	    continue
           }
-	  sh 'rm -rf newclone'
           sleep(1850 + 8 * i)
         }
         if (!succeeded) {
           sh "freesitemgr reinsert $dirname"
 	  unstable "Could not clone the repo. Repo reinserted."
         }
+        sh 'rm -rf newclone'
       }
     }
 
