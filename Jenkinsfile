@@ -24,16 +24,18 @@ def freesitemgrdir = '/home/debbiedub/.freesitemgr'
 def mirrors = "${env.MIRRORS_DIR}"
 
 def waitForUpdatesToComplete(mirrors, laps) {
-  retry (laps) {
+  boolean succeeded = false
+  for (int i = 0; i < laps && !succeeded; i++) {
     // If any still inserting, we try again
     // This retry works as a while with limited amount of attempts
-    sh """freesitemgr update `ls $mirrors` > output.txt
+    int result = sh returnStatus: true, script: """freesitemgr update `ls $mirrors` > output.txt
           cat output.txt
-          if grep 'still inserting' < output.txt
-          then
-              sleep 100
-              false
-          fi"""
+    	  grep 'still inserting' < output.txt"""
+    if (result != 0) {      // grep didn't find anything
+      succeeded = true
+    } else {
+      sleep(100)
+    }
   }
 }
 
