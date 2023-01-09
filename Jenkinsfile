@@ -79,7 +79,7 @@ for (String dirname : files_list.split("\\r?\\n")) {
   buildParallelMap.put(dirname,
     stage(dirname) {
       boolean succeeded = false
-      for (int i = 0; i < 5 && !succeeded; i++) {
+      for (int i = 0; i < 10 && !succeeded; i++) {
         // The recent cache is 1800s in the default configuration
         // It is pointless to hit again before that is aged.
         node ('debbies') {
