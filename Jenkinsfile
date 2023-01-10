@@ -92,11 +92,12 @@ for (String dirname : files_list.split("\\r?\\n")) {
             sh 'rm -rf newclone'
             if (result == 0) {
               succeeded = true
-              continue
             }
 	  }
         }
-        sleep(1850 + 8 * i)
+	if (!succeeded) {
+          sleep(1850 + 8 * i)
+	}
       }
       if (!succeeded) {
         node ('debbies') {
