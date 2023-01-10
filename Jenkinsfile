@@ -44,7 +44,9 @@ def waitForUpdatesToComplete(mirrors, laps) {
 }
 
 def files_list
-def docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
+def docker_params() {
+  return "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
+}
 
 stage('Get dgof') {
   node ('debbies') {
@@ -57,7 +59,7 @@ RUN pip3 install pyFreenet3
     // freesitemgr uses $HOME to find its dir (really os.path.expanduser("~"))
     // Both freesitemgr config and mirrors config points to dgof dir
     // using absolute path.
-    docker.build('pyfreenet:3').inside(docker_params) {
+    docker.build('pyfreenet:3').inside(docker_params()) {
       sh '''
         if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
         then
@@ -83,7 +85,7 @@ for (String dirname : files_list.split("\\r?\\n")) {
         // The recent cache is 1800s in the default configuration
         // It is pointless to hit again before that is aged.
         node ('debbies') {
-          docker.image('pyFreenet:3').inside(docker_params) {
+          docker.image('pyFreenet:3').inside(docker_params()) {
             sh 'rm -rf newclone'
             int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$dirname/1 newclone"
             sh 'rm -rf newclone'
@@ -97,7 +99,7 @@ for (String dirname : files_list.split("\\r?\\n")) {
       }
       if (!succeeded) {
         node ('debbies') {
-          docker.image('pyFreenet:3').inside(docker_params) {
+          docker.image('pyFreenet:3').inside(docker_params()) {
             sh "freesitemgr reinsert $dirname"
             unstable "Could not clone the repo. Repo reinserted."
 	  }
@@ -110,7 +112,7 @@ parallel(buildParallelMap)
 
 stage('wait for reinserts') {
   node ('debbies') {
-    docker.image('pyFreenet:3').inside(docker_params) {
+    docker.image('pyFreenet:3').inside(docker_params()) {
       waitForUpdatesToComplete(mirrors, 30)
     }
   }
@@ -118,7 +120,7 @@ stage('wait for reinserts') {
 
 stage('update') {
   node ('debbies') {
-    docker.image('pyFreenet:3').inside(docker_params) {
+    docker.image('pyFreenet:3').inside(docker_params()) {
       for (String dirname : files_list.split("\\r?\\n")) {
         sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
       }
