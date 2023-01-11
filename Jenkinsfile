@@ -79,8 +79,9 @@ RUN pip3 install pyFreenet3
 }
 
 def buildParallelMap = [:]
-for (String dirname : files_list.split("\\r?\\n")) {
-  buildParallelMap.put(dirname, {
+def dirnames = files_list.split("\\r?\\n")
+dirnames.each { dirname ->
+  buildParallelMap[dirname] = {
     stage(dirname) {
       boolean succeeded = false
       for (int i = 0; i < 10 && !succeeded; i++) {
@@ -109,7 +110,7 @@ for (String dirname : files_list.split("\\r?\\n")) {
         }
       }
     }
-    })
+    }
 }
 
 parallel(buildParallelMap)
