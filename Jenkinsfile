@@ -41,6 +41,7 @@ def waitForUpdatesToComplete(mirrors, laps) {
       sleep(100)
     }
   }
+  return succeeded
 }
 
 def files_list
@@ -115,7 +116,9 @@ parallel(buildParallelMap)
 stage('wait for reinserts') {
   node ('debbies') {
     docker_image.inside(docker_params) {
-      waitForUpdatesToComplete(mirrors, 30)
+      if (!waitForUpdatesToComplete(mirrors, 30)) {
+        unstable "Reinserts didn't complete in time"
+      }
     }
   }
 }
@@ -126,7 +129,9 @@ stage('update') {
       for (String dirname : files_list.split("\\r?\\n")) {
         sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
       }
-      waitForUpdatesToComplete(mirrors, 15)
+      if (!waitForUpdatesToComplete(mirrors, 15)) {
+        unstable "Updates didn't complete in time"
+      }
     }
   }
 }
