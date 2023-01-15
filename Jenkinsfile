@@ -68,7 +68,7 @@ stage('Check old inserts') {
   // This is to verify that we have a clean slate
   node ('debbies') {
     docker_image.inside(docker_params) {
-      if (!waitForUpdatesToComplete(mirrors, 30)) {
+      if (!waitForUpdatesToComplete(mirrors, 1)) {
         fail "Old inserts are still ongoing"
       }
     }
