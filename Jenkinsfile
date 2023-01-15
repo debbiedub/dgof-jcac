@@ -48,7 +48,7 @@ def files_list
 def docker_image
 def docker_params
 
-stage('Get dgof') {
+stage('Prepare docker image') {
   node ('debbies') {
     deleteDir()
     writeFile file:'Dockerfile', text: '''
@@ -61,6 +61,22 @@ RUN pip3 install pyFreenet3
     // using absolute path.
     docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
     docker_image = docker.build('pyfreenet:3')
+  }
+}
+
+stage('Check old inserts') {
+  // This is to verify that we have a clean slate
+  node ('debbies') {
+    docker_image.inside(docker_params) {
+      if (!waitForUpdatesToComplete(mirrors, 30)) {
+        fail "Old inserts are still ongoing"
+      }
+    }
+  }
+}
+
+stage('Get dgof') {
+  node ('debbies') {
     docker_image.inside(docker_params) {
       sh '''
         if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
