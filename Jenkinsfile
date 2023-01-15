@@ -89,12 +89,14 @@ dirnames.each { dirname ->
         // It is pointless to hit again before that is aged.
         node ('debbies') {
           docker_image.inside(docker_params) {
+	    echo "Processing $dirname lap $i"
             sh 'rm -rf newclone'
             int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$dirname/1 newclone"
             sh 'rm -rf newclone'
             if (result == 0) {
               succeeded = true
             }
+	    echo "Done processing $dirname lap $i"
 	  }
         }
 	if (!succeeded) {
