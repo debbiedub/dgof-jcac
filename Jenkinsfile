@@ -69,7 +69,7 @@ stage('Check old inserts') {
   node ('debbies') {
     docker_image.inside(docker_params) {
       if (!waitForUpdatesToComplete(mirrors, 1)) {
-        fail "Old inserts are still ongoing"
+        error "Old inserts are still ongoing"
       }
     }
   }
