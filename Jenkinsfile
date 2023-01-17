@@ -40,7 +40,7 @@ def waitForUpdatesToComplete(mirrors, laps) {
       docker_image.inside(docker_params) {
         int result = sh returnStatus: true, script: """freesitemgr update `ls $mirrors` > output.txt
               cat output.txt
-    	      grep -v 'No update required' < output.txt"""
+    	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
         if (result != 0) {      // grep didn't find anything
           succeeded = true
 	}
