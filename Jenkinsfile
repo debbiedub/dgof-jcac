@@ -27,17 +27,25 @@ def dgofdir = '/home/debbiedub/.dgof_sites'
 def freesitemgrdir = '/home/debbiedub/.freesitemgr'
 def mirrors = "${env.MIRRORS_DIR}"
 
+def docker_image
+def docker_params
+
 def waitForUpdatesToComplete(mirrors, laps) {
   boolean succeeded = false
   for (int i = 0; i < laps && !succeeded; i++) {
     // If any still inserting, we try again
     // This retry works as a while with limited amount of attempts
-    int result = sh returnStatus: true, script: """freesitemgr update `ls $mirrors` > output.txt
-          cat output.txt
-    	  grep 'still inserting' < output.txt"""
-    if (result != 0) {      // grep didn't find anything
-      succeeded = true
-    } else {
+    node ('debbies') {
+      docker_image.inside(docker_params) {
+        int result = sh returnStatus: true, script: """freesitemgr update `ls $mirrors` > output.txt
+              cat output.txt
+    	      grep 'still inserting' < output.txt"""
+        if (result != 0) {      // grep didn't find anything
+          succeeded = true
+	}
+      }
+    }
+    if (!succeeded) {
       sleep(100)
     }
   }
@@ -45,8 +53,6 @@ def waitForUpdatesToComplete(mirrors, laps) {
 }
 
 def files_list
-def docker_image
-def docker_params
 
 stage('Prepare docker image') {
   node ('debbies') {
@@ -66,12 +72,8 @@ RUN pip3 install pyFreenet3
 
 stage('Check old inserts') {
   // This is to verify that we have a clean slate
-  node ('debbies') {
-    docker_image.inside(docker_params) {
-      if (!waitForUpdatesToComplete(mirrors, 1)) {
-        error "Old inserts are still ongoing"
-      }
-    }
+  if (!waitForUpdatesToComplete(mirrors, 1)) {
+    error "Old inserts are still ongoing"
   }
 }
 
@@ -134,12 +136,8 @@ dirnames.each { dirname ->
 parallel(buildParallelMap)
 
 stage('wait for reinserts') {
-  node ('debbies') {
-    docker_image.inside(docker_params) {
-      if (!waitForUpdatesToComplete(mirrors, 30)) {
-        unstable "Reinserts didn't complete in time"
-      }
-    }
+  if (!waitForUpdatesToComplete(mirrors, 30)) {
+    unstable "Reinserts didn't complete in time"
   }
 }
 
@@ -149,9 +147,9 @@ stage('update') {
       for (String dirname : files_list.split("\\r?\\n")) {
         sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
       }
-      if (!waitForUpdatesToComplete(mirrors, 15)) {
-        unstable "Updates didn't complete in time"
-      }
     }
+  }
+  if (!waitForUpdatesToComplete(mirrors, 15)) {
+    unstable "Updates didn't complete in time"
   }
 }
