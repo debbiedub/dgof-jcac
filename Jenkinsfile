@@ -27,26 +27,9 @@ def dgofdir = '/home/debbiedub/.dgof_sites'
 def freesitemgrdir = '/home/debbiedub/.freesitemgr'
 def mirrors = "${env.MIRRORS_DIR}"
 
-def docker_image
-def docker_params
-
-def files_list
-
-stage('Prepare docker image') {
-  node ('debbies') {
-    deleteDir()
-    writeFile file:'Dockerfile', text: '''
-FROM python:3
-
-RUN pip3 install pyFreenet3
-    '''
-    // freesitemgr uses $HOME to find its dir (really os.path.expanduser("~"))
-    // Both freesitemgr config and mirrors config points to dgof dir
-    // using absolute path.
-    docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
-    docker_image = docker.build('pyfreenet:3')
-  }
-}
+// global variables:
+//   docker_image
+//   docker_params
 
 def waitForUpdatesToComplete(mirrors, laps) {
   boolean succeeded = false
@@ -68,6 +51,24 @@ def waitForUpdatesToComplete(mirrors, laps) {
     }
   }
   return succeeded
+}
+
+def files_list
+
+stage('Prepare docker image') {
+  node ('debbies') {
+    deleteDir()
+    writeFile file:'Dockerfile', text: '''
+FROM python:3
+
+RUN pip3 install pyFreenet3
+    '''
+    // freesitemgr uses $HOME to find its dir (really os.path.expanduser("~"))
+    // Both freesitemgr config and mirrors config points to dgof dir
+    // using absolute path.
+    docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
+    docker_image = docker.build('pyfreenet:3')
+  }
 }
 
 stage('Check old inserts') {
