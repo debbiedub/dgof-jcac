@@ -129,6 +129,7 @@ dirnames.each { dirname ->
             unstable "Could not clone the repo. Repo reinserted."
 	  }
         }
+	sleep(1000)
       }
     }
     }
