@@ -47,7 +47,7 @@ def waitForUpdatesToComplete(mirrors, laps) {
       }
     }
     if (!succeeded) {
-      sleep(100)
+      sleep(1000)
     }
   }
   return succeeded
@@ -73,7 +73,7 @@ RUN pip3 install pyFreenet3
 
 stage('Check old inserts') {
   // This is to verify that we have a clean slate
-  if (!waitForUpdatesToComplete(mirrors, 1)) {
+  if (!waitForUpdatesToComplete(mirrors, 10)) {
     error "Old inserts are still ongoing"
   }
 }
@@ -150,7 +150,7 @@ stage('update') {
       }
     }
   }
-  if (!waitForUpdatesToComplete(mirrors, 15)) {
+  if (!waitForUpdatesToComplete(mirrors, 30)) {
     unstable "Updates didn't complete in time"
   }
 }
