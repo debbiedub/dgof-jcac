@@ -7,11 +7,14 @@
 // 1. git clone --mirror URL name
 //    name is specified to not get the the .git suffix
 // 2. dgof-setup --as-maintainer name (after doing cd name)
+// 3. Remove the freesitemgr update command from the post-update hook
 //
 // within this job
 // 1. Clone and throw the clone away.
-// 2. If the clone didn't work, reinsert.
-// 3. Wait for the reinserts to complete in all projects.
+// 2. Fetch from source and push to freenet.
+// 3. If the clone didn't work, reinsert. If the clone did work, update.
+// 4. Wait for the inserts to complete in all projects.
+// To be removed:
 // 4. Fetch all and push to freenet.
 // 5. Wait for push to complete in all projects.
 //
@@ -122,36 +125,25 @@ dirnames.each { dirname ->
           sleep(1850 + 8 * i)
 	}
       }
-      if (!succeeded) {
-        node ('debbies') {
-          docker_image.inside(docker_params) {
+      node ('debbies') {
+        docker_image.inside(docker_params) {
+          sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
+          if (succeeded) {
+            sh "freesitemgr update $dirname"
+	  } else {
             sh "freesitemgr reinsert $dirname"
-            unstable "Could not clone the repo. Repo reinserted."
+	    unstable "Could not clone the repo. Repo reinserted."
 	  }
         }
-	sleep(1000)
       }
     }
-    }
+  }
 }
 
 parallel(buildParallelMap)
 
-stage('wait for reinserts') {
-  if (!waitForUpdatesToComplete(mirrors, 30)) {
-    unstable "Reinserts didn't complete in time"
-  }
-}
-
-stage('update') {
-  node ('debbies') {
-    docker_image.inside(docker_params) {
-      for (String dirname : files_list.split("\\r?\\n")) {
-        sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
-      }
-    }
-  }
-  if (!waitForUpdatesToComplete(mirrors, 30)) {
-    unstable "Updates didn't complete in time"
+stage('wait for updates and reinserts') {
+  if (!waitForUpdatesToComplete(mirrors, 60)) {
+    unstable "Updates and reinserts didn't complete in time"
   }
 }
