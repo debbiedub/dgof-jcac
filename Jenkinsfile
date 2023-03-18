@@ -36,7 +36,7 @@ def mirrors = "${env.MIRRORS_DIR}"
 
 def waitForUpdatesToComplete(mirrors, laps) {
   boolean succeeded = false
-  for (int i = 0; i < laps && !succeeded; i++) {
+  for (int i = 1; i <= laps && !succeeded; i++) {
     // If any still inserting, we try again
     // This retry works as a while with limited amount of attempts
     node ('debbies') {
