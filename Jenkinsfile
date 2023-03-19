@@ -106,7 +106,7 @@ dirnames.each { dirname ->
   buildParallelMap[dirname] = {
     stage(dirname) {
       boolean succeeded = false
-      for (int i = 0; i < 5 && !succeeded; i++) {
+      for (int i = 1; i <= 5 && !succeeded; i++) {
         // The recent cache is 1800s in the default configuration
         // It is pointless to hit again before that is aged.
         node ('debbies') {
