@@ -103,6 +103,7 @@ dirnames.each { dirname ->
   buildParallelMap[dirname] = {
     stage(dirname) {
       boolean succeeded = false
+      pushCmd = "cd $mirrors/$dirname && git fetch --all && git push freenet"
       for (int i = 1; i <= 5 && !succeeded; i++) {
         // The recent cache is 1800s in the default configuration
         // It is pointless to hit again before that is aged.
@@ -114,6 +115,8 @@ dirnames.each { dirname ->
             sh 'rm -rf newclone'
             if (result == 0) {
               succeeded = true
+              sh pushCmd
+              sh "freesitemgr update $dirname"
             }
 	    echo "Done processing $dirname lap $i"
 	  }
@@ -122,12 +125,10 @@ dirnames.each { dirname ->
           sleep(1850 + 8 * i)
 	}
       }
-      node ('debbies') {
-        docker_image.inside(docker_params) {
-          sh "cd $mirrors/$dirname && git fetch --all && git push freenet"
-          if (succeeded) {
-            sh "freesitemgr update $dirname"
-	  } else {
+      if (!succeeded) {
+        node ('debbies') {
+          docker_image.inside(docker_params) {
+            sh pushCmd
             sh "freesitemgr reinsert $dirname"
 	    unstable "Could not clone the repo. Repo reinserted."
 	  }
