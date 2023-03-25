@@ -14,9 +14,6 @@
 // 2. Fetch from source and push to freenet.
 // 3. If the clone didn't work, reinsert. If the clone did work, update.
 // 4. Wait for the inserts to complete in all projects.
-// To be removed:
-// 4. Fetch all and push to freenet.
-// 5. Wait for push to complete in all projects.
 //
 // This job assumes that when allocating the same node and creating
 // a new container with the same image, the same workspace is used.
