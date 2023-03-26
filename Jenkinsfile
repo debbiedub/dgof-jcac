@@ -103,7 +103,7 @@ dirnames.each { dirname ->
   buildParallelMap[dirname] = {
     stage(dirname) {
       boolean succeeded = false
-      pushCmd = """cd $mirrors/$dirname &&
+      String pushCmd = """cd $mirrors/$dirname &&
       git fetch --all && git push freenet &&
       """ +
       // Wait for a while if git is running gc.
