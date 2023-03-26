@@ -117,8 +117,6 @@ dirnames.each { dirname ->
           sleep 20;
       fi'''
       for (int i = 1; i <= 5 && !succeeded; i++) {
-        // The recent cache is 1800s in the default configuration
-        // It is pointless to hit again before that is aged.
         node ('debbies') {
           docker_image.inside(docker_params) {
 	    echo "Processing $dirname lap $i"
@@ -134,6 +132,9 @@ dirnames.each { dirname ->
 	  }
         }
 	if (!succeeded) {
+	  // Wait before trying again.
+          // The recent cache is 1800s in the default configuration
+          // It is pointless to hit again before that is aged.
           sleep(1850 + 8 * i)
 	}
       }
