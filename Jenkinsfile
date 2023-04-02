@@ -107,18 +107,7 @@ dirnames.each { dirname ->
     stage(dirname) {
       boolean succeeded = false
       String pushCmd = """cd $mirrors/$dirname &&
-      git fetch --all && git push freenet &&
-      """ +
-      // Wait for a while if git is running gc.
-      // Is this a real problems? Well, I have seen the file
-      // gc.log.lock failing freesitemgr since it disappears immediately.
-      // I can notice files gc.pid and gc.pid.lock appear when forcing
-      // git gc.
-      '''cd $(git config --get remote.freenet.url) &&
-      if test -e gc.log -o -e gc.log.lock -o -e gc.pid -o -e gc.pid.lock;
-      then
-          sleep 20;
-      fi'''
+      git fetch --all && git push freenet"""
       for (int i = 1; i <= 5 && !succeeded; i++) {
         node ('debbies') {
           docker_image.inside(docker_params) {
