@@ -78,7 +78,10 @@ stage('Check old inserts') {
   }
 }
 
+
 stage('Get dgof') {
+  // Get and/or install dgof into the workspace
+  // Commands using dgof will need $(pwd)/dgof to be added to the PATH
   node ('debbies') {
     docker_image.inside(docker_params) {
       sh '''
@@ -119,7 +122,7 @@ dirnames.each { dirname ->
       for (int i = 1; i <= 5 && !succeeded; i++) {
         node ('debbies') {
           docker_image.inside(docker_params) {
-	    echo "Processing $dirname lap $i"
+	    echo "Start processing $dirname lap $i"
             sh 'rm -rf newclone'
             int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$dirname/1 newclone"
             sh 'rm -rf newclone'
