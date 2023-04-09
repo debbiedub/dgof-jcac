@@ -114,6 +114,7 @@ dirnames.each { dirname ->
       git --version > v.new &&
       head -1 `which freesitemgr` | sed 's/^#!//p;d' |
       sed 's/$/ --version/' | sh >> v.new &&
+      pip3 list >> v.new &&
       freesitemgr --version >> v.new &&
       cmp -s versions v.new && rm v.new || mv v.new versions
       '''
