@@ -1,6 +1,15 @@
 // The common preparation
 // 1. Install pyFreenet3 (could be prepared in the docker image used)
 // 2. "install" dgof     (could be prepared in the docker image used)
+// 3. Set up ~/freesitemgr-dgof-jcac as a config dir for freesitemgr
+//    This is probably easiest done by adding a site using
+//      freesitemgr --config-dir=~/freesitemgr-dgof-jcac add
+//    and then removing it again.  The dir ~/freesitemgr-dgof-jcac
+//    exists outside of the docker container.  Inside the docker
+//    containers it is mapped to $HOME/.freesitemgr so --config-dir
+//    need not be specified on the command line.  The reason for
+//    not using a docker volume is to make it easier to access from
+//    the outside, like when setting up new repos.
 //
 // The logic for every repo:
 // outside of Jenkins:
@@ -8,6 +17,7 @@
 //    name is specified to not get the the .git suffix
 // 2. dgof-setup --as-maintainer name (after doing cd name)
 // 3. Remove the freesitemgr update command from the post-update hook
+// 4. move the freesitemgr file from ~/.freesitemgr to ~/freesitemgr-dgof-jcac
 //
 // within this job
 // 1. Clone and throw the clone away.
@@ -24,7 +34,7 @@
 def fetchURI = "${env.FETCH_URI}"
 
 def dgofdir = '/home/debbiedub/.dgof_sites'
-def freesitemgrdir = '/home/debbiedub/.freesitemgr'
+def freesitemgrdir = '/home/debbiedub/freesitemgr-dgof-jcac'
 def mirrors = "${env.MIRRORS_DIR}"
 
 // global variables:
