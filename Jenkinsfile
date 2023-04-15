@@ -120,7 +120,6 @@ dirnames.each { dirname ->
       git fetch --all && git push freenet && """ + 
       // Add a file with the used versions of the tools      
       '''cd $(git config --get remote.freenet.url) &&
-      echo Versions: > v.new &&
       git --version > v.new &&
       head -1 `which freesitemgr` | sed 's/^#!//p;d' |
       sed 's/$/ --version/' | sh >> v.new &&
