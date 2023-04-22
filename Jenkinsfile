@@ -123,17 +123,18 @@ def gen_cl(name, mirrors, fetchURI) {
 	  echo "Cloning failed $name will reinsert"
 	}
       }
-      sh """cd $mirrors/$name &&
-        git fetch --all && git push freenet && """ + 
+      dir ("$mirrors/$name") {
+        sh "git fetch --all && git push freenet"
         // Add a file with the used versions of the tools      
-        '''cd $(git config --get remote.freenet.url) &&
-        git --version > v.new &&
-        head -1 `which freesitemgr` | sed 's/^#!//p;d' |
-        sed 's/$/ --version/' | sh >> v.new &&
-        pip3 list >> v.new &&
-        freesitemgr --version >> v.new &&
-        cmp -s versions v.new && rm v.new || mv v.new versions
+        sh '''cd $(git config --get remote.freenet.url) &&
+          git --version > v.new &&
+          head -1 `which freesitemgr` | sed 's/^#!//p;d' |
+          sed 's/$/ --version/' | sh >> v.new &&
+          pip3 list >> v.new &&
+          freesitemgr --version >> v.new &&
+          cmp -s versions v.new && rm v.new || mv v.new versions
         '''
+      }
       state = 3
       if (result2 != 0) {
         sh "freesitemgr reinsert $name"
