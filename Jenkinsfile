@@ -105,6 +105,20 @@ def updateAndPoll(dirname, laps) {
 }
 
 
+def gen_cl(name) {
+  int laps = 60
+	return {
+    int result = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
+	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+    if (result == 0 &&      // grep found something
+	      laps-- > 0) {
+      return 1000
+    }
+    return 0
+  }
+}
+
+
 def buildParallelMap = [:]
 def dirnames = files_list.split("\\r?\\n")
 dirnames.each { dirname ->
@@ -166,18 +180,7 @@ dirnames.each { dirname ->
         unstable "Updates and reinserts didn't complete in time"
       }
 
-      def gen_cl(name) {
-        int laps = 60
-	return {
-          int result = sh returnStatus: true, script: """freesitemgr update $dirname | tee output.txt
-    	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
-          if (result == 0 &&      // grep found something
-	      laps-- > 0) {
-            return 1000
-          }
-          return 0
-	}
-      }
+      def cl = gen_cl(dirname)
       def result = 1
       while ({
         node ('debbies') {
