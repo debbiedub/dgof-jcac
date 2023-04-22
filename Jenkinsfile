@@ -63,6 +63,28 @@ def waitForUpdatesToComplete(mirrors, laps) {
   return succeeded
 }
 
+def waitForUpdate(dirname, laps) {
+  boolean succeeded = false
+  for (int i = 1; i <= laps && !succeeded; i++) {
+    // If any still inserting, we try again
+    // This retry works as a while with limited amount of attempts
+    node ('debbies') {
+      docker_image.inside(docker_params) {
+        int result = sh returnStatus: true, script: """freesitemgr update $dirname | tee output.txt
+    	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+        if (result != 0) {      // grep didn't find anything
+          succeeded = true
+	}
+      }
+    }
+    if (!succeeded) {
+      sleep(1000)
+    }
+  }
+  return succeeded
+}
+
+
 def files_list
 
 stage('Prepare docker image') {
@@ -115,6 +137,10 @@ def dirnames = files_list.split("\\r?\\n")
 dirnames.each { dirname ->
   buildParallelMap[dirname] = {
     stage(dirname) {
+      if (!waitForUpdate(dirname, 10)) {
+        error "Old inserts are still ongoing"
+      }
+
       String pushCmd = """cd $mirrors/$dirname &&
       git fetch --all && git push freenet && """ + 
       // Add a file with the used versions of the tools      
