@@ -83,37 +83,75 @@ stage('Get dgof') {
 }
 
 
-def updateAndPoll(dirname, laps) {
-  boolean succeeded = false
-  for (int i = 1; i <= laps && !succeeded; i++) {
-    // If any still inserting, we try again
-    // This retry works as a while with limited amount of attempts
-    node ('debbies') {
-      docker_image.inside(docker_params) {
-        int result = sh returnStatus: true, script: """freesitemgr update $dirname | tee output.txt
-    	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
-        if (result != 0) {      // grep didn't find anything
-          succeeded = true
+// The generated closure is used to perform the work done in the node.
+// When it is done, it returns 0 or less.
+// Whenever it needs to sleep it returns the amount of seconds to sleep.
+// This is run in a way so that the node is released when sleeping
+// to allow other legs in the parallel execution to run.
+def gen_cl(name) {
+  int state = 1
+
+  int laps1 = 1
+  int laps2 = 1
+  int laps3 = 1
+
+  return {
+    if (state == 1) {
+      int result1 = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
+	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+      if (result1 == 0 &&      // grep found something
+          laps1++ < 10) {
+        return 1000
+      }
+      state = 2
+    }
+
+    if (state == 2) {
+      echo "Start cloning $name lap $laps2"
+      sh 'rm -rf newclone'
+      int result2 = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
+      sh 'rm -rf newclone'
+      if (result2 != 0) {
+        if (laps2++ < 5) {
+          // Wait before trying again.
+          // The recent cache is 1800s in the default configuration
+          // It is pointless to hit again before that is aged.
+          echo "Cloning failed $name lap $laps2 - will retry"
+          return 1850
+	} else {
+	  echo "Cloning failed $name will reinsert"
 	}
       }
+      sh """cd $mirrors/$name &&
+        git fetch --all && git push freenet && """ + 
+        // Add a file with the used versions of the tools      
+        '''cd $(git config --get remote.freenet.url) &&
+        git --version > v.new &&
+        head -1 `which freesitemgr` | sed 's/^#!//p;d' |
+        sed 's/$/ --version/' | sh >> v.new &&
+        pip3 list >> v.new &&
+        freesitemgr --version >> v.new &&
+        cmp -s versions v.new && rm v.new || mv v.new versions
+        '''
+      state = 3
+      if (result2 != 0) {
+        sh "freesitemgr reinsert $name"
+        unstable "Could not clone the repo. Repo reinserted."
+	// There is no point in doing update immediately after reinsert.
+	return 300
+      }
     }
-    if (!succeeded) {
-      sleep(1000)
-    }
-  }
-  return succeeded
-}
 
-
-def gen_cl(name) {
-  int laps = 60
-	return {
-    int result = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
+    if (state == 3) {
+      int result3 = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
-    if (result == 0 &&      // grep found something
-	      laps-- > 0) {
-      return 1000
+      if (result3 == 0 &&      // grep found something
+          laps3++ < 60) {
+        return 1000
+      }
+      state = 4
     }
+
     return 0
   }
 }
@@ -124,62 +162,6 @@ def dirnames = files_list.split("\\r?\\n")
 dirnames.each { dirname ->
   buildParallelMap[dirname] = {
     stage(dirname) {
-      if (!updateAndPoll(dirname, 10)) {
-        error "Old inserts are still ongoing"
-      }
-
-      String pushCmd = """cd $mirrors/$dirname &&
-      git fetch --all && git push freenet && """ + 
-      // Add a file with the used versions of the tools      
-      '''cd $(git config --get remote.freenet.url) &&
-      git --version > v.new &&
-      head -1 `which freesitemgr` | sed 's/^#!//p;d' |
-      sed 's/$/ --version/' | sh >> v.new &&
-      pip3 list >> v.new &&
-      freesitemgr --version >> v.new &&
-      cmp -s versions v.new && rm v.new || mv v.new versions
-      '''
-      boolean succeeded = false
-      for (int i = 1; i <= 5 && !succeeded; i++) {
-        node ('debbies') {
-          docker_image.inside(docker_params) {
-	    echo "Start processing $dirname lap $i"
-            sh 'rm -rf newclone'
-            int result = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$dirname/1 newclone"
-            sh 'rm -rf newclone'
-            if (result == 0) {
-              succeeded = true
-              sh pushCmd
-              sh "freesitemgr update $dirname"
-	      // There is another update immediately in updateAndPoll
-	      // but that is in another node so it is scheduled after
-	      // all other sites have executed and it is better to
-	      // start any insert before that.
-            }
-	    echo "Done processing $dirname lap $i"
-	  }
-        }
-	if (!succeeded) {
-	  // Wait before trying again.
-          // The recent cache is 1800s in the default configuration
-          // It is pointless to hit again before that is aged.
-          sleep(1850 + 8 * i)
-	}
-      }
-      if (!succeeded) {
-        node ('debbies') {
-          docker_image.inside(docker_params) {
-            sh pushCmd
-            sh "freesitemgr reinsert $dirname"
-	    unstable "Could not clone the repo. Repo reinserted."
-	  }
-        }
-      }
-
-      if (!updateAndPoll(dirname, 60)) {
-        unstable "Updates and reinserts didn't complete in time"
-      }
-
       def cl = gen_cl(dirname)
       def result = 1
       while ({
