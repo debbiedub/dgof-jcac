@@ -101,13 +101,14 @@ def gen_cl(name, mirrors, fetchURI) {
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       if (result1 == 0 &&      // grep found something
           laps1++ < 10) {
-        return 1000
+        return 1000 + laps1 * 22
       }
       state = 2
     }
 
     if (state == 2) {
-      echo "Start cloning $name lap $laps2"
+      def lap = $laps2
+      echo "Start cloning $name lap $lap"
       sh 'rm -rf newclone'
       int result2 = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
       sh 'rm -rf newclone'
@@ -116,8 +117,8 @@ def gen_cl(name, mirrors, fetchURI) {
           // Wait before trying again.
           // The recent cache is 1800s in the default configuration
           // It is pointless to hit again before that is aged.
-          echo "Cloning failed $name lap $laps2 - will retry"
-          return 1850 + laps2 * 55
+          echo "Cloning failed $name lap $lap - will retry"
+          return 1800 + lap * 8
 	} else {
 	  echo "Cloning failed $name will reinsert"
 	}
@@ -147,7 +148,7 @@ def gen_cl(name, mirrors, fetchURI) {
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       if (result3 == 0 &&      // grep found something
           laps3++ < 60) {
-        return 1000
+        return 600 + laps3 * 18
       }
       state = 4
     }
