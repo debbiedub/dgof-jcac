@@ -41,49 +41,6 @@ def mirrors = "${env.MIRRORS_DIR}"
 //   docker_image
 //   docker_params
 
-def waitForUpdatesToComplete(mirrors, laps) {
-  boolean succeeded = false
-  for (int i = 1; i <= laps && !succeeded; i++) {
-    // If any still inserting, we try again
-    // This retry works as a while with limited amount of attempts
-    node ('debbies') {
-      docker_image.inside(docker_params) {
-        int result = sh returnStatus: true, script: """freesitemgr update `ls $mirrors` > output.txt
-              cat output.txt
-    	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
-        if (result != 0) {      // grep didn't find anything
-          succeeded = true
-	}
-      }
-    }
-    if (!succeeded) {
-      sleep(1000)
-    }
-  }
-  return succeeded
-}
-
-def waitForUpdate(dirname, laps) {
-  boolean succeeded = false
-  for (int i = 1; i <= laps && !succeeded; i++) {
-    // If any still inserting, we try again
-    // This retry works as a while with limited amount of attempts
-    node ('debbies') {
-      docker_image.inside(docker_params) {
-        int result = sh returnStatus: true, script: """freesitemgr update $dirname | tee output.txt
-    	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
-        if (result != 0) {      // grep didn't find anything
-          succeeded = true
-	}
-      }
-    }
-    if (!succeeded) {
-      sleep(1000)
-    }
-  }
-  return succeeded
-}
-
 
 def files_list
 
@@ -100,13 +57,6 @@ RUN pip3 install pyFreenet3
     // using absolute path.
     docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
     docker_image = docker.build('pyfreenet:3')
-  }
-}
-
-stage('Check old inserts') {
-  // This is to verify that we have a clean slate
-  if (!waitForUpdatesToComplete(mirrors, 10)) {
-    error "Old inserts are still ongoing"
   }
 }
 
@@ -131,6 +81,29 @@ stage('Get dgof') {
     }
   }
 }
+
+
+def waitForUpdate(dirname, laps) {
+  boolean succeeded = false
+  for (int i = 1; i <= laps && !succeeded; i++) {
+    // If any still inserting, we try again
+    // This retry works as a while with limited amount of attempts
+    node ('debbies') {
+      docker_image.inside(docker_params) {
+        int result = sh returnStatus: true, script: """freesitemgr update $dirname | tee output.txt
+    	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+        if (result != 0) {      // grep didn't find anything
+          succeeded = true
+	}
+      }
+    }
+    if (!succeeded) {
+      sleep(1000)
+    }
+  }
+  return succeeded
+}
+
 
 def buildParallelMap = [:]
 def dirnames = files_list.split("\\r?\\n")
@@ -184,14 +157,12 @@ dirnames.each { dirname ->
 	  }
         }
       }
+
+      if (!waitForUpdate(dirname, 60)) {
+        unstable "Updates and reinserts didn't complete in time"
+      }
     }
   }
 }
 
 parallel(buildParallelMap)
-
-stage('wait for updates and reinserts') {
-  if (!waitForUpdatesToComplete(mirrors, 60)) {
-    unstable "Updates and reinserts didn't complete in time"
-  }
-}
