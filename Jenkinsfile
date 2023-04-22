@@ -107,7 +107,7 @@ def gen_cl(name, mirrors, fetchURI) {
     }
 
     if (state == 2) {
-      def lap = $laps2
+      def lap = laps2
       echo "Start cloning $name lap $lap"
       sh 'rm -rf newclone'
       int result2 = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
