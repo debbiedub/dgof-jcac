@@ -137,6 +137,10 @@ dirnames.each { dirname ->
               succeeded = true
               sh pushCmd
               sh "freesitemgr update $dirname"
+	      // There is another update immediately in updateAndPoll
+	      // but that is in another node so it is scheduled after
+	      // all other sites have executed and it is better to
+	      // start any insert before that.
             }
 	    echo "Done processing $dirname lap $i"
 	  }
