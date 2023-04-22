@@ -165,6 +165,30 @@ dirnames.each { dirname ->
       if (!updateAndPoll(dirname, 60)) {
         unstable "Updates and reinserts didn't complete in time"
       }
+
+      def gen_cl(name) {
+        int laps = 60
+	return {
+          int result = sh returnStatus: true, script: """freesitemgr update $dirname | tee output.txt
+    	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+          if (result == 0 &&      // grep found something
+	      laps-- > 0) {
+            return 1000
+          }
+          return 0
+	}
+      }
+      def result = 1
+      while ({
+        node ('debbies') {
+          docker_image.inside(docker_params) {
+            result = cl()
+	  }
+	}
+	result > 0
+      }()) {
+        sleep(result)
+      }
     }
   }
 }
