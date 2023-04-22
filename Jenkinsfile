@@ -83,7 +83,7 @@ stage('Get dgof') {
 }
 
 
-def waitForUpdate(dirname, laps) {
+def updateAndPoll(dirname, laps) {
   boolean succeeded = false
   for (int i = 1; i <= laps && !succeeded; i++) {
     // If any still inserting, we try again
@@ -110,7 +110,7 @@ def dirnames = files_list.split("\\r?\\n")
 dirnames.each { dirname ->
   buildParallelMap[dirname] = {
     stage(dirname) {
-      if (!waitForUpdate(dirname, 10)) {
+      if (!updateAndPoll(dirname, 10)) {
         error "Old inserts are still ongoing"
       }
 
@@ -158,7 +158,7 @@ dirnames.each { dirname ->
         }
       }
 
-      if (!waitForUpdate(dirname, 60)) {
+      if (!updateAndPoll(dirname, 60)) {
         unstable "Updates and reinserts didn't complete in time"
       }
     }
