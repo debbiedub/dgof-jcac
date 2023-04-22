@@ -115,7 +115,6 @@ def dirnames = files_list.split("\\r?\\n")
 dirnames.each { dirname ->
   buildParallelMap[dirname] = {
     stage(dirname) {
-      boolean succeeded = false
       String pushCmd = """cd $mirrors/$dirname &&
       git fetch --all && git push freenet && """ + 
       // Add a file with the used versions of the tools      
@@ -127,6 +126,7 @@ dirnames.each { dirname ->
       freesitemgr --version >> v.new &&
       cmp -s versions v.new && rm v.new || mv v.new versions
       '''
+      boolean succeeded = false
       for (int i = 1; i <= 5 && !succeeded; i++) {
         node ('debbies') {
           docker_image.inside(docker_params) {
