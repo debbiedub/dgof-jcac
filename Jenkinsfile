@@ -88,7 +88,7 @@ stage('Get dgof') {
 // Whenever it needs to sleep it returns the amount of seconds to sleep.
 // This is run in a way so that the node is released when sleeping
 // to allow other legs in the parallel execution to run.
-def gen_cl(name) {
+def gen_cl(name, mirrors, fetchURI) {
   int state = 1
 
   int laps1 = 1
@@ -117,7 +117,7 @@ def gen_cl(name) {
           // The recent cache is 1800s in the default configuration
           // It is pointless to hit again before that is aged.
           echo "Cloning failed $name lap $laps2 - will retry"
-          return 1850
+          return 1850 + laps2 * 55
 	} else {
 	  echo "Cloning failed $name will reinsert"
 	}
@@ -162,7 +162,7 @@ def dirnames = files_list.split("\\r?\\n")
 dirnames.each { dirname ->
   buildParallelMap[dirname] = {
     stage(dirname) {
-      def cl = gen_cl(dirname)
+      def cl = gen_cl(dirname, mirrors, fetchURI)
       def result = 1
       while ({
         node ('debbies') {
