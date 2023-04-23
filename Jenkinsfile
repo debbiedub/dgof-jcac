@@ -66,18 +66,20 @@ stage('Get dgof') {
   // Commands using dgof will need $(pwd)/dgof to be added to the PATH
   node ('debbies') {
     docker_image.inside(docker_params) {
-      sh '''
-        if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
-        then
-          cat gitclone.out 1>&2
-        else
-          cp gitclone.out newusk
-          sed -i '$s/.*USK@/USK@/p;d' newusk
-          sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
-          git clone http://localhost:8888/freenet:$(cat newusk) dgof
-        fi
-        '''
-      files_list = sh (script: "ls $mirrors", returnStdout: true).trim()
+      timeout(100) {
+        sh '''
+          if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
+          then
+            cat gitclone.out 1>&2
+          else
+            cp gitclone.out newusk
+            sed -i '$s/.*USK@/USK@/p;d' newusk
+            sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
+            git clone http://localhost:8888/freenet:$(cat newusk) dgof
+          fi
+          '''
+        files_list = sh (script: "ls $mirrors", returnStdout: true).trim()
+      }
     }
   }
 }
@@ -97,8 +99,10 @@ def gen_cl(name, mirrors, fetchURI) {
 
   return {
     if (state == 1) {
-      int result1 = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
+      timeout(30) {
+        int result1 = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+      }
       if (result1 == 0 &&      // grep found something
           laps1++ < 10) {
         return 1000 + laps1 * 22
@@ -110,7 +114,9 @@ def gen_cl(name, mirrors, fetchURI) {
       def lap = laps2
       echo "Start cloning $name lap $lap"
       sh 'rm -rf newclone'
-      int result2 = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
+      timeout(100) {
+        int result2 = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
+      }
       sh 'rm -rf newclone'
       if (result2 != 0) {
         if (laps2++ < 5) {
@@ -140,7 +146,9 @@ def gen_cl(name, mirrors, fetchURI) {
 
       state = 3
       if (result2 != 0) {
-        sh "freesitemgr reinsert $name"
+        timeout(100) {
+          sh "freesitemgr reinsert $name"
+	}
         unstable "Could not clone the repo. Repo reinserted."
 	// There is no point in doing update immediately after reinsert.
 	return 300
@@ -148,8 +156,10 @@ def gen_cl(name, mirrors, fetchURI) {
     }
 
     if (state == 3) {
-      int result3 = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
+      timeout(30) {
+        int result3 = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+      }
       if (result3 == 0 &&      // grep found something
           laps3++ < 60) {
         return 600 + laps3 * 18
