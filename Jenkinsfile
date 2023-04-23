@@ -136,7 +136,7 @@ def gen_cl(name, mirrors, fetchURI) {
         '''
       }
       // This is to handle the problem described in JENKINS-52750
-      sh "test -d $mirrors/$name@tmp && rmdir $mirrors/$name@tmp"
+      sh "D=$mirrors/$name@tmp;" + 'if test -d $D; then rmdir $D; fi'
 
       state = 3
       if (result2 != 0) {
