@@ -78,8 +78,8 @@ stage('Get dgof') {
             git clone http://localhost:8888/freenet:$(cat newusk) dgof
           fi
           '''
-        files_list = sh (script: "ls $mirrors", returnStdout: true).trim()
       }
+      files_list = sh (script: "ls $mirrors", returnStdout: true).trim()
     }
   }
 }
@@ -99,8 +99,8 @@ def gen_cl(name, mirrors, fetchURI) {
 
   return {
     if (state == 1) {
-      timeout(30) {
-        int result1 = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
+      int result1 = timeout(30) {
+        sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result1 == 0 &&      // grep found something
@@ -114,8 +114,8 @@ def gen_cl(name, mirrors, fetchURI) {
       def lap = laps2
       echo "Start cloning $name lap $lap"
       sh 'rm -rf newclone'
-      timeout(100) {
-        int result2 = sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
+      int result2 = timeout(100) {
+        sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
       }
       sh 'rm -rf newclone'
       if (result2 != 0) {
@@ -156,8 +156,8 @@ def gen_cl(name, mirrors, fetchURI) {
     }
 
     if (state == 3) {
-      timeout(30) {
-        int result3 = sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
+      int result3 = timeout(30) {
+        sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result3 == 0 &&      // grep found something
