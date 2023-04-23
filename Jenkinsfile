@@ -135,6 +135,9 @@ def gen_cl(name, mirrors, fetchURI) {
           cmp -s versions v.new && rm v.new || mv v.new versions
         '''
       }
+      // This is to handle the problem described in JENKINS-52750
+      sh "test -d $mirrors/$name@tmp && rmdir $mirrors/$name@tmp"
+
       state = 3
       if (result2 != 0) {
         sh "freesitemgr reinsert $name"
