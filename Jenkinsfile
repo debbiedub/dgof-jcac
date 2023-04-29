@@ -11,8 +11,7 @@
 //    not using a docker volume is to make it easier to access from
 //    the outside, like when setting up new repos.
 //
-// The logic for every repo:
-// outside of Jenkins:
+// The logic for every repo outside of Jenkins:
 // 1. git clone --mirror URL name
 //    name is specified to not get the the .git suffix
 // 2. dgof-setup --as-maintainer name (after doing cd name)
@@ -23,7 +22,7 @@
 // 1. Clone and throw the clone away.
 // 2. Fetch from source and push to freenet.
 // 3. If the clone didn't work, reinsert. If the clone did work, update.
-// 4. Wait for the inserts to complete in all projects.
+// 4. Wait for the inserts to complete.
 //
 // This job assumes that when allocating the same node and creating
 // a new container with the same image, the same workspace is used.
@@ -86,6 +85,7 @@ stage('Get dgof') {
 
 
 // The generated closure is used to perform the work done in the node.
+// It is called over and over again util done.
 // When it is done, it returns 0 or less.
 // Whenever it needs to sleep it returns the amount of seconds to sleep.
 // This is run in a way so that the node is released when sleeping
@@ -131,6 +131,7 @@ def gen_cl(name, mirrors, fetchURI) {
       }
       dir ("$mirrors/$name") {
         sh "git fetch --all && git push freenet"
+
         // Add a file with the used versions of the tools      
         sh '''cd $(git config --get remote.freenet.url) &&
           git --version > v.new &&
