@@ -91,27 +91,29 @@ stage('Get dgof') {
 // This is run in a way so that the node is released when sleeping
 // to allow other legs in the parallel execution to run.
 def gen_cl(name, mirrors, fetchURI) {
-  int state = 1
+  boolean preparation_done = false
+  boolean cloning_done = false
+  boolean upload_done = false
 
-  int laps1 = 1
-  int laps2 = 1
-  int laps3 = 1
+  int preparation_laps = 1
+  int cloning_laps = 1
+  int upload_laps = 1
 
   return {
-    if (state == 1) {
+    if (!preparation_done) {
       int result1 = timeout(30) {
         sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result1 == 0 &&      // grep found something
-          laps1++ < 10) {
-        return 1000 + laps1 * 22
+          preparation_laps++ < 10) {
+        return 1000 + preparation_laps * 22
       }
-      state = 2
+      preparation_done = true
     }
 
-    if (state == 2) {
-      def lap = laps2
+    if (!cloning_done) {
+      def lap = cloning_laps
       echo "Start cloning $name lap $lap"
       sh 'rm -rf newclone'
       int result2 = timeout(100) {
@@ -119,7 +121,7 @@ def gen_cl(name, mirrors, fetchURI) {
       }
       sh 'rm -rf newclone'
       if (result2 != 0) {
-        if (laps2++ < 5) {
+        if (cloning_laps++ < 5) {
           // Wait before trying again.
           // The recent cache is 1800s in the default configuration
           // It is pointless to hit again before that is aged.
@@ -145,7 +147,7 @@ def gen_cl(name, mirrors, fetchURI) {
       // This is to handle the problem described in JENKINS-52750
       sh "D=$mirrors/$name@tmp;" + 'if test -d $D; then rmdir $D; fi'
 
-      state = 3
+      cloning_done = true
       if (result2 != 0) {
         timeout(100) {
           sh "freesitemgr reinsert $name"
@@ -156,16 +158,16 @@ def gen_cl(name, mirrors, fetchURI) {
       }
     }
 
-    if (state == 3) {
+    if (!upload_done) {
       int result3 = timeout(30) {
         sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result3 == 0 &&      // grep found something
-          laps3++ < 60) {
-        return 600 + laps3 * 18
+          upload_laps++ < 60) {
+        return 600 + upload_laps * 18
       }
-      state = 4
+      upload_done = true
     }
 
     return 0
