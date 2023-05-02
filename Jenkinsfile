@@ -101,36 +101,41 @@ def gen_cl(name, mirrors, fetchURI) {
 
   return {
     if (!preparation_done) {
+      def lap = preparation_laps++
+      echo "$name: Start preparation lap $lap"
       int result1 = timeout(30) {
         sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result1 == 0 &&      // grep found something
-          preparation_laps++ < 10) {
-        return 1000 + preparation_laps * 22
+          lap < 10) {
+        echo "$name: Preparation deferred lap $lap"
+        return 1000 + lap * 22
       }
+      echo "$name: Preparation done lap $lap"
       preparation_done = true
     }
 
     if (!cloning_done) {
-      def lap = cloning_laps
-      echo "Start cloning $name lap $lap"
+      def lap = cloning_laps++
+      echo "$name: Start cloning lap $lap"
       sh 'rm -rf newclone'
       int result2 = timeout(100) {
         sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
       }
       sh 'rm -rf newclone'
       if (result2 != 0) {
-        if (cloning_laps++ < 5) {
+        if (lap < 5) {
           // Wait before trying again.
           // The recent cache is 1800s in the default configuration
           // It is pointless to hit again before that is aged.
-          echo "Cloning failed $name lap $lap - will retry"
+          echo "$name: Cloning failed lap $lap - will retry"
           return 1800 + lap * 8
 	} else {
-	  echo "Cloning failed $name will reinsert"
+          echo "$name: Cloning failed lap $lap will reinsert"
 	}
       }
+      echo "$name: Cloning done lap $lap"
       dir ("$mirrors/$name") {
         sh "git fetch --all && git push freenet"
 
@@ -152,21 +157,26 @@ def gen_cl(name, mirrors, fetchURI) {
         timeout(100) {
           sh "freesitemgr reinsert $name"
 	}
-        unstable "Could not clone the repo. Repo reinserted."
+        unstable "$name: Could not clone the repo. Repo reinserted."
 	// There is no point in doing update immediately after reinsert.
 	return 300
       }
     }
 
     if (!upload_done) {
+      def lap = upload_laps++
+      echo "$name: Start upload lap $lap"
       int result3 = timeout(30) {
         sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
-      if (result3 == 0 &&      // grep found something
-          upload_laps++ < 60) {
-        return 600 + upload_laps * 18
+      if (result3 == 0)         // grep found something
+        echo "$name: Upload not completed lap $lap"
+	if (lap < 60) {
+          return 600 + lap * 18
+        }
       }
+      echo "$name: Upload done lap $lap"
       upload_done = true
     }
 
