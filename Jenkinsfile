@@ -170,7 +170,7 @@ def gen_cl(name, mirrors, fetchURI) {
         sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
 	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
-      if (result3 == 0)         // grep found something
+      if (result3 == 0) {        // grep found something
         echo "$name: Upload not completed lap $lap"
 	if (lap < 60) {
           return 600 + lap * 18
