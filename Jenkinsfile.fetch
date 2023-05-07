@@ -21,7 +21,7 @@ pipeline {
       )
   }
   triggers {
-    cron("@daily")
+    cron("H H/4 * * *")
   }
   options {
     timestamps()
@@ -58,7 +58,7 @@ pipeline {
             else
 	      git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof
             fi
-            curl $(git -C dgof remote get-url origin)/fetch_all_setup.sh > fetch_all_setup.sh
+            curl $(git -C dgof remote get-url origin)fetch_all_setup.sh > fetch_all_setup.sh
             chmod +x fetch_all_setup.sh
             '''
         }
