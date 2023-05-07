@@ -61,9 +61,9 @@ pipeline {
     }
     stage('fetch') {
       steps {
-        sh "./fetch_all_setup.sh"
-        sh "PATH=$PATH:$(pwd)/dgof git -C all fetch --all"
-        sh "git -C all gc --prune=all"
+        sh './fetch_all_setup.sh'
+        sh 'PATH=$PATH:$(pwd)/dgof git -C all fetch --all'
+        sh 'git -C all gc --prune=all'
       }
     }
   }
