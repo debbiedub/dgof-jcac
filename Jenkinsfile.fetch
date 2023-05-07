@@ -20,6 +20,9 @@ pipeline {
         'refetch everything.'
       )
   }
+  triggers {
+    cron("@daily")
+  }
 
   stages {
     stage('clean') {
