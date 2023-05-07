@@ -10,6 +10,7 @@ pipeline {
     dockerfile {
       label 'debbies'
       args "--network=host"
+    }
   }
   parameters {
     booleanParam(
