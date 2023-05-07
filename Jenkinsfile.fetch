@@ -23,6 +23,9 @@ pipeline {
   triggers {
     cron("@daily")
   }
+  options {
+    timestamps()
+  }
 
   stages {
     stage('clean') {
