@@ -51,8 +51,9 @@ pipeline {
               cp gitclone.out newusk
               sed -i '$s/.*USK@/USK@/p;d' newusk
               sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
-              git clone http://localhost:8888/freenet:$(cat newusk) dgof
-	      curl $(cat newusk)fetch_all_setup.sh > fetch_all_setup.sh
+	      newuri=http://localhost:8888/freenet:$(cat newusk)
+              git clone $newuri dgof
+	      curl ${newuri}fetch_all_setup.sh > fetch_all_setup.sh
               chmod +x fetch_all_setup.sh
             fi
             '''
