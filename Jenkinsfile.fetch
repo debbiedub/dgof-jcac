@@ -44,18 +44,22 @@ pipeline {
         // Commands using dgof will need $(pwd)/dgof to be added to the PATH
         timeout(100) {
           sh '''
-            if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
-            then
-              cat gitclone.out 1>&2
-            else
-              cp gitclone.out newusk
-              sed -i '$s/.*USK@/USK@/p;d' newusk
-              sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
-	      newuri=http://localhost:8888/freenet:$(cat newusk)
-              git clone $newuri dgof
-	      curl ${newuri}fetch_all_setup.sh > fetch_all_setup.sh
-              chmod +x fetch_all_setup.sh
+	    if test -d dgof
+	    then
+	      (
+                export PATH=$PATH:$(pwd)/dgof
+                cd dgof
+                git pull --ff-only
+              ) || rm -rf dgof
             fi
+	    if test -d dgof
+	    then
+	      : dgof is updated
+            else
+	      git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof
+            fi
+            curl $(git -C dgof remote get-url origin)/fetch_all_setup.sh > fetch_all_setup.sh
+            chmod +x fetch_all_setup.sh
             '''
         }
       }
