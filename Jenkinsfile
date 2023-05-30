@@ -81,7 +81,7 @@ stage('Get dgof') {
       // Remove empty directories
       // The script for some reason creates empty directories
       // with adding @tmp at the end of the filename.
-      sh script: "rmdir $mirrors/*", returnStdout: true
+      sh "rmdir --ignore-fail-on-non-empty $mirrors/*"
       files_list = sh (script: "ls $mirrors", returnStdout: true).trim()
     }
   }
