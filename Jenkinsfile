@@ -78,6 +78,10 @@ stage('Get dgof') {
           fi
           '''
       }
+      // Remove empty directories
+      // The script for some reason creates empty directories
+      // with adding @tmp at the end of the filename.
+      sh script: "rmdir $mirrors/*", returnStdout: true
       files_list = sh (script: "ls $mirrors", returnStdout: true).trim()
     }
   }
