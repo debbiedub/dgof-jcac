@@ -30,6 +30,8 @@
 //
 // Fetch-URI is in the Jenkins settings. Private-URI in the freesitemgr config.
 
+import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException
+
 def fetchURI = "${env.FETCH_URI}"
 
 def dgofdir = '/home/debbiedub/.dgof_sites'
@@ -124,8 +126,15 @@ def gen_cl(name, mirrors, fetchURI) {
       def lap = cloning_laps++
       echo "$name: Start cloning lap $lap"
       sh 'rm -rf newclone'
-      int result2 = timeout(100) {
-        sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
+      int result2 = 0
+      try {
+        result2 = timeout(100) {
+          sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" GIT_TRACE_REMOTE_FREENET=1 git clone ' + "freenet::$fetchURI$name/1 newclone"
+        }
+      } catch (FlowInterruptedException ex) {
+        // We got timeout. Consider it as clone failed.
+	// This will retry some times
+        result2 = -1
       }
       sh 'rm -rf newclone'
       if (result2 != 0) {
