@@ -185,7 +185,7 @@ def gen_cl(name, mirrors, fetchURI) {
       }
       if (result3 == 0) {        // grep found something
         echo "$name: Upload not completed lap $lap"
-	if (lap < 60) {
+	if (lap < 30) {
           return 600 + lap * 18
         }
       }
