@@ -18,11 +18,11 @@
 // 3. Remove the freesitemgr update command from the post-update hook
 // 4. move the freesitemgr file from ~/.freesitemgr to ~/freesitemgr-dgof-jcac
 //
-// within this job
+// Within this job, for every repo
 // 1. Clone and throw the clone away.
-// 2. Fetch from source and push to freenet.
+// 2. Fetch from source and push to the copy used for freenet
 // 3. If the clone didn't work, reinsert. If the clone did work, update.
-// 4. Wait for the inserts to complete.
+// 4. Wait for any insert to complete.
 //
 // This job assumes that when allocating the same node and creating
 // a new container with the same image, the same workspace is used.
@@ -205,6 +205,11 @@ dirnames.each { dirname ->
     stage(dirname) {
       def cl = gen_cl(dirname, mirrors, fetchURI)
       def result = 1
+      // The closure cl is run using cl() on the node
+      // When it cannot do anymore (completed or needs to
+      // sleep or wait for something) it returns.
+      // If a positive value is returned, it sleeps this many seconds.
+      // This allows others to use the node while this closure doesn't.
       while ({
         node ('debbies') {
           docker_image.inside(docker_params) {
