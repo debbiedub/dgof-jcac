@@ -7,8 +7,9 @@
 
 pipeline {
   agent {
-    dockerfile {
+    docker {
       label 'debbies'
+      image 'python:3'
       args "--network=host"
     }
   }
