@@ -188,6 +188,7 @@ def gen_cl(name, mirrors, fetchURI) {
 	if (lap < 30) {
           return 600 + lap * 18
         }
+	error "$name: Did not complete upload"
       }
       echo "$name: Upload done lap $lap"
       upload_done = true
