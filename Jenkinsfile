@@ -110,8 +110,8 @@ def gen_cl(name, mirrors, fetchURI) {
       def lap = preparation_laps++
       echo "$name: Start preparation lap $lap"
       int result1 = timeout(30) {
-        sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
-	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+        sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
+	      egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result1 == 0 &&      // grep found something
           lap < 10) {
@@ -172,6 +172,11 @@ def gen_cl(name, mirrors, fetchURI) {
 	}
         unstable "$name: Could not clone the repo. Repo reinserted."
 	// There is no point in doing update immediately after reinsert.
+	return 600
+      } else {
+        timeout(100) {
+          sh "freesitemgr update $name"
+	}
 	return 300
       }
     }
@@ -180,8 +185,8 @@ def gen_cl(name, mirrors, fetchURI) {
       def lap = upload_laps++
       echo "$name: Start upload lap $lap"
       int result3 = timeout(30) {
-        sh returnStatus: true, script: """freesitemgr update $name | tee output.txt
-	      egrep -v 'No update required|site insert has completed|checking if a new insert is needed' < output.txt"""
+        sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
+	      egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result3 == 0) {        // grep found something
         echo "$name: Upload not completed lap $lap"
