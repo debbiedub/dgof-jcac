@@ -108,17 +108,17 @@ def gen_cl(name, mirrors, fetchURI) {
   return {
     if (!preparation_done) {
       def lap = preparation_laps++
-      echo "$name: Start preparation lap $lap"
+      echo "$name: Start wait for running insert to complete done lap $lap"
       int result1 = timeout(30) {
         sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
 	      egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result1 == 0 &&      // grep found something
           lap < 10) {
-        echo "$name: Preparation deferred lap $lap"
+        echo "$name: Wait for running insert to complete deferred lap $lap"
         return 1000 + lap * 22
       }
-      echo "$name: Preparation done lap $lap"
+      echo "$name: Wait for running insert to complete done lap $lap"
       preparation_done = true
     }
 
@@ -177,25 +177,24 @@ def gen_cl(name, mirrors, fetchURI) {
         timeout(100) {
           sh "freesitemgr update $name"
 	}
-	return 300
       }
     }
 
     if (!upload_done) {
       def lap = upload_laps++
-      echo "$name: Start upload lap $lap"
+      echo "$name: Start wait for upload lap $lap"
       int result3 = timeout(30) {
         sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
 	      egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result3 == 0) {        // grep found something
-        echo "$name: Upload not completed lap $lap"
+        echo "$name: Wait for upload not completed lap $lap"
 	if (lap < 30) {
           return 600 + lap * 18
         }
-	error "$name: Did not complete upload"
+	error "$name: Did not complete wait for upload"
       }
-      echo "$name: Upload done lap $lap"
+      echo "$name: Wait for upload done lap $lap"
       upload_done = true
     }
 
