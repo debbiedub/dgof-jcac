@@ -108,17 +108,17 @@ def gen_cl(name, mirrors, fetchURI) {
   return {
     if (!preparation_done) {
       def lap = preparation_laps++
-      echo "$name: Start wait for running insert to complete done lap $lap"
+      echo "$name: Start pre-check lap $lap"
       int result1 = timeout(30) {
         sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
 	      egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
       }
       if (result1 == 0 &&      // grep found something
-          lap < 10) {
-        echo "$name: Wait for running insert to complete deferred lap $lap"
+          lap < 5) {
+        echo "$name: Pre-check deferred lap $lap"
         return 1000 + lap * 22
       }
-      echo "$name: Wait for running insert to complete done lap $lap"
+      echo "$name: Pre-check done lap $lap"
       preparation_done = true
     }
 
@@ -177,6 +177,8 @@ def gen_cl(name, mirrors, fetchURI) {
         timeout(100) {
           sh "freesitemgr update $name"
 	}
+        // For the case where there is no update (most cases), let's proceed
+        // immediately to the check.
       }
     }
 
