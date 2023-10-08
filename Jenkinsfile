@@ -34,7 +34,6 @@ import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException
 
 def fetchURI = "${env.FETCH_URI}"
 
-def dgofdir = '/home/debbiedub/.dgof_sites'
 def freesitemgrdir = '/home/debbiedub/freesitemgr-dgof-jcac'
 def mirrors = "${env.MIRRORS_DIR}"
 
@@ -56,7 +55,7 @@ RUN pip3 install pyFreenet3
     // freesitemgr uses $HOME to find its dir (really os.path.expanduser("~"))
     // Both freesitemgr config and mirrors config points to dgof dir
     // using absolute path.
-    docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $dgofdir:$dgofdir -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
+    docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
     docker_image = docker.build('pyfreenet:3')
   }
 }
