@@ -67,8 +67,10 @@ pipeline {
                 git clone http://localhost:8888/freenet:$(cat newusk) dgof
               fi
             fi
-            curl $(git -C dgof remote get-url origin)fetch_all_setup.sh > fetch_all_setup.sh
-            chmod +x fetch_all_setup.sh
+            GET_URL=$(git -C dgof remote get-url origin)
+            curl ${GET_URL}fetch_all_setup.sh > fetch_all_setup.sh
+            curl ${GET_URL}fetch_known_repos.sh > fetch_known_repos.sh
+            chmod +x fetch_all_setup.sh fetch_known_repos.sh
             '''
         }
       }
@@ -76,6 +78,7 @@ pipeline {
     stage('fetch') {
       steps {
         sh './fetch_all_setup.sh'
+        sh './fetch_known_repos.sh'
         sh 'PATH=$PATH:$(pwd)/dgof git -C all fetch --all'
         sh 'git -C all gc --prune=all'
       }
