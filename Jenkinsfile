@@ -124,11 +124,10 @@ def gen_cl(name, mirrors, fetchURI) {
     if (!cloning_done) {
       def lap = cloning_laps++
       echo "$name: Start cloning lap $lap"
-      sh 'rm -rf newclone'
       int result2 = 0
       try {
         result2 = timeout(100) {
-          sh returnStatus: true, script: 'PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$name/1 newclone"
+          sh returnStatus: true, script: 'rm -rf newclone && PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$name/1 newclone"
         }
       } catch (FlowInterruptedException ex) {
         // We got timeout. Consider it as clone failed.
@@ -149,10 +148,9 @@ def gen_cl(name, mirrors, fetchURI) {
       }
       echo "$name: Cloning done lap $lap"
       dir ("$mirrors/$name") {
-        sh "git fetch --all && git push freenet"
-
-        // Add a file with the used versions of the tools      
-        sh '''cd $(git config --get remote.freenet.url) &&
+        sh "git fetch --all && git push freenet; " +
+          // Add a file with the used versions of the tools      
+	  '''cd $(git config --get remote.freenet.url) &&
           git --version > v.new &&
           head -1 `which freesitemgr` | sed 's/^#!//p;d' |
           sed 's/$/ --version/' | sh >> v.new &&
