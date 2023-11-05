@@ -68,8 +68,10 @@ pipeline {
               fi
             fi
             GET_URL=$(git -C dgof remote get-url origin)
-            curl ${GET_URL}fetch_all_setup.sh > fetch_all_setup.sh
-            curl ${GET_URL}fetch_known_repos.sh > fetch_known_repos.sh
+            curl ${GET_URL}fetch_all_setup.sh?type=text/plain \
+	    	 > fetch_all_setup.sh
+            curl ${GET_URL}fetch_known_repos.sh?type=text/plain \
+	    	 > fetch_known_repos.sh
             chmod +x fetch_all_setup.sh fetch_known_repos.sh
             '''
         }
