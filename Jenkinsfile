@@ -148,9 +148,10 @@ def gen_cl(name, mirrors, fetchURI) {
       }
       echo "$name: Cloning done lap $lap"
       dir ("$mirrors/$name") {
-        sh "git fetch --all && git push freenet && " +
-          // Add a file with the used versions of the tools      
-	  '''cd $(git config --get remote.freenet.url) &&
+        // Get new things from the mirrored repos
+	// Add a file with the used versions of the tools      
+        sh '''git fetch --all && git push freenet &&
+	  cd $(git config --get remote.freenet.url) &&
           git --version > v.new &&
           head -1 `which freesitemgr` | sed 's/^#!//p;d' |
           sed 's/$/ --version/' | sh >> v.new &&
