@@ -145,11 +145,12 @@ def gen_cl(name, mirrors, fetchURI) {
 	} else {
           echo "$name: Cloning failed lap $lap will reinsert"
 	}
+      } else {
+        echo "$name: Cloning done lap $lap"
       }
-      echo "$name: Cloning done lap $lap"
       dir ("$mirrors/$name") {
         // Get new things from the mirrored repos
-	// Add a file with the used versions of the tools      
+        // Add a file with the used versions of the tools      
         sh '''git fetch --all && git push freenet &&
 	  cd $(git config --get remote.freenet.url) &&
           git --version > v.new &&
@@ -193,8 +194,9 @@ def gen_cl(name, mirrors, fetchURI) {
           return 600 + lap * 18
         }
 	error "$name: Did not complete wait for upload"
+      } else {
+        echo "$name: Wait for upload done lap $lap"
       }
-      echo "$name: Wait for upload done lap $lap"
       upload_done = true
     }
 
