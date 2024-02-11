@@ -14,15 +14,25 @@
 // The logic for every repo outside of Jenkins:
 // 1. git clone --mirror URL name
 //    name is specified to not get the the .git suffix
-// 2. dgof-setup --as-maintainer name (after doing cd name)
-// 3. Remove the freesitemgr update command from the post-update hook
-// 4. move the freesitemgr file from ~/.freesitemgr to ~/freesitemgr-dgof-jcac
+// 2. dgof-setup --as-maintainer --bootstram name (after doing cd name)
+//    Add the private URI that matches the FETCH_URI of the jenkins
+//    configuration and is suffixed with name
+//    If it fails because of the cannot pack into small enough files,
+//    redo without --bootstrap and the repo will not be available
+//    without dgof
+// 3. Remove the freesitemgr update command and the echos from the
+//    post-update hook in the dgof/name/hooks directory
+// 4. Make the first freesitemgr update
+// 5. Move the freesitemgr file from ~/.freesitemgr to ~/freesitemgr-dgof-jcac
 //
 // Within this job, for every repo
 // 1. Clone and throw the clone away.
 // 2. Fetch from source and push to the copy used for freenet
 // 3. If the clone didn't work, reinsert. If the clone did work, update.
 // 4. Wait for any insert to complete.
+//
+// If started with "bootstrap" and then "growing out of it", remove
+// the blocking lines in post-update hook to be able to run the repo.
 //
 // This job assumes that when allocating the same node and creating
 // a new container with the same image, the same workspace is used.
