@@ -20,10 +20,14 @@
 //    If it fails because of the cannot pack into small enough files,
 //    redo without --bootstrap and the repo will not be available
 //    without dgof
-// 3. Remove the freesitemgr update command and the echos from the
+// 3. Deactivate the default update for the freenet remote for the mirrored
+//    repo:
+//      git config remote.freenet.skipDefaultUpdate true
+// 4. Remove the freesitemgr update command and the echos from the
 //    post-update hook in the dgof/name/hooks directory
-// 4. Make the first freesitemgr update
-// 5. Move the freesitemgr file from ~/.freesitemgr to ~/freesitemgr-dgof-jcac
+// 5. Make the first freesitemgr update
+// 6. Move the freesitemgr file from ~/.freesitemgr to ~/freesitemgr-dgof-jcac
+// 
 //
 // Within this job, for every repo
 // 1. Clone and throw the clone away.
