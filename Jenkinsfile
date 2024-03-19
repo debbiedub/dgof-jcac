@@ -102,127 +102,129 @@ timestamps {
       }
     }
   }
+}
 
+// The generated closure is used to perform the work done in the node.
+// It is called over and over again util done.
+// When it is done, it returns 0 or less.
+// Whenever it needs to sleep it returns the amount of seconds to sleep.
+// This is run in a way so that the node is released when sleeping
+// to allow other legs in the parallel execution to run.
+def gen_cl(name, mirrors, fetchURI) {
+  boolean preparation_done = false
+  boolean cloning_done = false
+  boolean upload_done = false
 
-  // The generated closure is used to perform the work done in the node.
-  // It is called over and over again util done.
-  // When it is done, it returns 0 or less.
-  // Whenever it needs to sleep it returns the amount of seconds to sleep.
-  // This is run in a way so that the node is released when sleeping
-  // to allow other legs in the parallel execution to run.
-  def gen_cl(name, mirrors, fetchURI) {
-    boolean preparation_done = false
-    boolean cloning_done = false
-    boolean upload_done = false
+  int preparation_laps = 1
+  int cloning_laps = 1
+  int upload_laps = 1
 
-    int preparation_laps = 1
-    int cloning_laps = 1
-    int upload_laps = 1
-
-    return {
+  return {
+    timestamps {
       if (!preparation_done) {
-	def lap = preparation_laps++
-	echo "$name: Start pre-check lap $lap"
-	int result1 = timeout(30) {
-	  sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
-		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
-	}
-	if (result1 == 0 &&      // grep found something
-	    lap < 5) {
-	  echo "$name: Pre-check deferred lap $lap"
-	  return 1000 + lap * 22
-	}
-	echo "$name: Pre-check done lap $lap"
-	preparation_done = true
+  	def lap = preparation_laps++
+  	echo "$name: Start pre-check lap $lap"
+  	int result1 = timeout(30) {
+  	  sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
+  		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
+  	}
+  	if (result1 == 0 &&      // grep found something
+  	    lap < 5) {
+  	  echo "$name: Pre-check deferred lap $lap"
+  	  return 1000 + lap * 22
+  	}
+  	echo "$name: Pre-check done lap $lap"
+  	preparation_done = true
       }
-
+  
       if (!cloning_done) {
-	def lap = cloning_laps++
-	echo "$name: Start cloning lap $lap"
-	int result2 = 0
-	try {
-	  result2 = timeout(100) {
-	    sh returnStatus: true, script: 'rm -rf newclone && PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$name/1 newclone"
-	  }
-	} catch (FlowInterruptedException ex) {
-	  // We got timeout. Consider it as clone failed.
-	  // This will retry some times
-	  result2 = -1
-	}
-	sh 'rm -rf newclone'
-	if (result2 != 0) {
-	  if (lap < 5) {
-	    // Wait before trying again.
-	    // The recent cache is 1800s in the default configuration
-	    // It is pointless to hit again before that is aged.
-	    echo "$name: Cloning failed lap $lap - will retry"
-	    return 1800 + lap * 8
-	  } else {
-	    echo "$name: Cloning failed lap $lap will reinsert"
-	  }
-	} else {
-	  echo "$name: Cloning done lap $lap"
-	}
-	dir ("$mirrors/$name") {
-	  // Get new things from the mirrored repos
-	  // Add a file with the used versions of the tools      
-	  sh '''git fetch --all && git push freenet &&
-	    cd $(git config --get remote.freenet.pushurl || 
-		 git config --get remote.freenet.url) &&
-	    git --version > v.new &&
-	    head -1 `which freesitemgr` | sed 's/^#!//p;d' |
-	    sed 's/$/ --version/' | sh >> v.new &&
-	    pip3 list >> v.new &&
-	    freesitemgr --version >> v.new &&
-	    cmp -s versions v.new && rm v.new || mv v.new versions
-	  '''
-	}
-	// This is to handle the problem described in JENKINS-52750
-	sh "D=$mirrors/$name@tmp;" + 'if test -d $D; then rmdir $D; fi'
-
-	cloning_done = true
-	if (result2 != 0) {
-	  timeout(100) {
-	    sh "freesitemgr reinsert $name"
-	  }
-	  unstable "$name: Could not clone the repo. Repo reinserted."
-	  // There is no point in doing update immediately after reinsert.
-	  return 600
-	} else {
-	  timeout(100) {
-	    sh "freesitemgr update $name"
-	  }
-	  // For the case where there is no update (most cases), let's proceed
-	  // immediately to the check.
-	}
+  	def lap = cloning_laps++
+  	echo "$name: Start cloning lap $lap"
+  	int result2 = 0
+  	try {
+  	  result2 = timeout(100) {
+  	    sh returnStatus: true, script: 'rm -rf newclone && PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$name/1 newclone"
+  	  }
+  	} catch (FlowInterruptedException ex) {
+  	  // We got timeout. Consider it as clone failed.
+  	  // This will retry some times
+  	  result2 = -1
+  	}
+  	sh 'rm -rf newclone'
+  	if (result2 != 0) {
+  	  if (lap < 5) {
+  	    // Wait before trying again.
+  	    // The recent cache is 1800s in the default configuration
+  	    // It is pointless to hit again before that is aged.
+  	    echo "$name: Cloning failed lap $lap - will retry"
+  	    return 1800 + lap * 8
+  	  } else {
+  	    echo "$name: Cloning failed lap $lap will reinsert"
+  	  }
+  	} else {
+  	  echo "$name: Cloning done lap $lap"
+  	}
+  	dir ("$mirrors/$name") {
+  	  // Get new things from the mirrored repos
+  	  // Add a file with the used versions of the tools      
+  	  sh '''git fetch --all && git push freenet &&
+  	    cd $(git config --get remote.freenet.pushurl || 
+  		 git config --get remote.freenet.url) &&
+  	    git --version > v.new &&
+  	    head -1 `which freesitemgr` | sed 's/^#!//p;d' |
+  	    sed 's/$/ --version/' | sh >> v.new &&
+  	    pip3 list >> v.new &&
+  	    freesitemgr --version >> v.new &&
+  	    cmp -s versions v.new && rm v.new || mv v.new versions
+  	  '''
+  	}
+  	// This is to handle the problem described in JENKINS-52750
+  	sh "D=$mirrors/$name@tmp;" + 'if test -d $D; then rmdir $D; fi'
+  
+  	cloning_done = true
+  	if (result2 != 0) {
+  	  timeout(100) {
+  	    sh "freesitemgr reinsert $name"
+  	  }
+  	  unstable "$name: Could not clone the repo. Repo reinserted."
+  	  // There is no point in doing update immediately after reinsert.
+  	  return 600
+  	} else {
+  	  timeout(100) {
+  	    sh "freesitemgr update $name"
+  	  }
+  	  // For the case where there is no update (most cases), let's proceed
+  	  // immediately to the check.
+  	}
       }
-
+  
       if (!upload_done) {
-	def lap = upload_laps++
-	echo "$name: Start wait for upload lap $lap"
-	int result3 = timeout(30) {
-	  sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
-		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
-	}
-	if (result3 == 0) {        // grep found something
-	  echo "$name: Wait for upload not completed lap $lap"
-	  if (lap < 30) {
-	    return 600 + lap * 18
-	  }
-	  error "$name: Did not complete wait for upload"
-	} else {
-	  echo "$name: Wait for upload done lap $lap"
-	}
-	upload_done = true
+  	def lap = upload_laps++
+  	echo "$name: Start wait for upload lap $lap"
+  	int result3 = timeout(30) {
+  	  sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
+  		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
+  	}
+  	if (result3 == 0) {        // grep found something
+  	  echo "$name: Wait for upload not completed lap $lap"
+  	  if (lap < 30) {
+  	    return 600 + lap * 18
+  	  }
+  	  error "$name: Did not complete wait for upload"
+  	} else {
+  	  echo "$name: Wait for upload done lap $lap"
+  	}
+  	upload_done = true
       }
-
-      return 0
     }
+    return 0
   }
+}
 
 
-  def buildParallelMap = [:]
-  def dirnames = files_list.split("\\r?\\n")
+def buildParallelMap = [:]
+def dirnames = files_list.split("\\r?\\n")
+timestamps {
   dirnames.each { dirname ->
     buildParallelMap[dirname] = {
       stage(dirname) {
