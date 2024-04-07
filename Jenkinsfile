@@ -173,7 +173,7 @@ def gen_cl(name, mirrors, fetchURI) {
 	    sed 's/$/ --version/' | sh >> v.new &&
 	    pip3 list >> v.new &&
 	    freesitemgr --version >> v.new &&
-	    cmp -s versions v.new && rm v.new || mv v.new versions
+	    { cmp -s versions v.new && rm v.new || mv v.new versions; }
 	  '''
 	}
 	// This is to handle the problem described in JENKINS-52750
