@@ -182,14 +182,14 @@ def gen_cl(name, mirrors, fetchURI) {
 	cloning_done = true
 	if (result2 != 0) {
 	  timeout(100) {
-	    sh "freesitemgr reinsert $name"
+	    sh "freesitemgr --cron reinsert $name"
 	  }
 	  unstable "$name: Could not clone the repo. Repo reinserted."
 	  // There is no point in doing update immediately after reinsert.
 	  return 600
 	} else {
 	  timeout(100) {
-	    sh "freesitemgr update $name"
+	    sh "freesitemgr --cron update $name"
 	  }
 	  // For the case where there is no update (most cases), let's proceed
 	  // immediately to the check.
