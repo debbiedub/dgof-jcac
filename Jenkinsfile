@@ -14,7 +14,7 @@
 // The logic for every repo outside of Jenkins:
 // 1. git clone --mirror URL name
 //    name is specified to not get the the .git suffix
-// 2. dgof-setup --as-maintainer --bootstram name (after doing cd name)
+// 2. dgof-setup --as-maintainer --bootstrap name (after doing cd name)
 //    Add the private URI that matches the FETCH_URI of the jenkins
 //    configuration and is suffixed with name
 //    If it fails because of the cannot pack into small enough files,
