@@ -1,0 +1,92 @@
+// The purpose
+//
+// Run the git based git fetching script.
+//
+// The script will just check for updates and pull them fetching the
+// top of the site.
+//
+// The only difference between this and Jenkinsfile.fetch is some default
+// settings (parameter default value and trigger period).
+
+pipeline {
+  agent {
+    docker {
+      label 'debbies'
+      image 'python:3'
+      args "--network=host"
+    }
+  }
+  parameters {
+    booleanParam(
+      name: 'REFETCH',
+      defaultValue: true,
+      description: 'Clone all will remove the stored copy and ' +
+        'refetch everything.'
+      )
+  }
+  triggers {
+    cron("H H * * H")
+  }
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+    buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr: '20'))
+  }
+
+  stages {
+    stage('clean') {
+      when {
+        expression { params.REFETCH }
+      }
+      steps {
+        sh '''rm -rf dgof all gitclone.out newusk'''
+      }
+    }
+    stage('Get dgof') {
+      steps {
+        // Get and/or install dgof into the workspace
+        // Commands using dgof will need $(pwd)/dgof to be added to the PATH
+        timeout(100) {
+          sh '''
+	    if test -d dgof
+	    then
+	      (
+                export PATH=$PATH:$(pwd)/dgof
+                cd dgof
+                git pull --ff-only
+              ) || rm -rf dgof
+            fi
+	    if test -d dgof
+	    then
+	      : dgof is updated
+            else
+              if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
+              then
+                cat gitclone.out 1>&2
+              else
+                cp gitclone.out newusk
+                sed -i '$s/.*USK@/USK@/p;d' newusk
+                sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
+                git clone http://localhost:8888/freenet:$(cat newusk) dgof
+              fi
+            fi
+            GET_URL=$(git -C dgof remote get-url origin)
+            curl ${GET_URL}fetch_all_setup.sh?type=text/plain \
+	    	 > fetch_all_setup.sh
+            curl ${GET_URL}fetch_known_repos.sh?type=text/plain \
+	    	 > fetch_known_repos.sh
+            chmod +x fetch_all_setup.sh fetch_known_repos.sh
+            '''
+        }
+      }
+    }
+    stage('fetch') {
+      steps {
+        sh './fetch_all_setup.sh'
+        sh './fetch_known_repos.sh'
+        sh 'PATH=$PATH:$(pwd)/dgof git -C all fetch --all'
+        sh 'git -C all gc --prune=all'
+      }
+    }
+  }
+}
