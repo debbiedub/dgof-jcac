@@ -68,7 +68,7 @@ pipeline {
       steps {
         sh 'mkdir -p all'
 	sh 'cd all && git init'
-        sh 'cd all && ../http_fetch_all.sh'
+        sh 'cd all && sh -e ../http_fetch_all.sh'
       }
     }
   }
