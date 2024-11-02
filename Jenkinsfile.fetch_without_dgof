@@ -68,7 +68,7 @@ pipeline {
       steps {
         sh 'mkdir -p all'
 	sh 'cd all && git init'
-        sh 'cd all && ../http_fetch_all.sh | tee /dev/tty | ! grep redirect:'
+        sh 'cd all && ../http_fetch_all.sh | tee /dev/tty | if grep redirect:; then false; else true; fi'
       }
     }
   }
