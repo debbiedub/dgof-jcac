@@ -67,7 +67,7 @@ pipeline {
     stage('fetch') {
       steps {
         sh 'mkdir -p all'
-	sh 'cd all && git init'
+	sh 'cd all && git init && git config gc.autoDetach false'
         sh 'cd all && ../http_fetch_all.sh | tee /dev/tty | if grep redirect:; then false; else true; fi'
       }
     }
