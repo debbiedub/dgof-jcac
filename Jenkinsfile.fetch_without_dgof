@@ -14,7 +14,7 @@ pipeline {
     }
   }
   triggers {
-    cron("H H/4 * * *")
+    cron("H H H/5 * *")
   }
   options {
     timestamps()
