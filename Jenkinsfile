@@ -66,34 +66,22 @@ timestamps {
   FROM python:3
 
   RUN pip3 install pyFreenet3
+  RUN pip3 install git+http://localhost:8888/$(curl http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/0/ | sed '/Permanent/s/.*freenet://;s/".*//;s/@/%40/')
       '''
       // freesitemgr uses $HOME to find its dir (really os.path.expanduser("~"))
       // Both freesitemgr config and mirrors config points to dgof dir
       // using absolute path.
       docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
-      docker_image = docker.build('pyfreenet:3')
+      docker_image = docker.build('dgof:3')
     }
   }
 
 
-  stage('Get dgof') {
+  stage('List') {
     // Get and/or install dgof into the workspace
     // Commands using dgof will need $(pwd)/dgof to be added to the PATH
     node ('debbies') {
       docker_image.inside(docker_params) {
-	timeout(100) {
-	  sh '''
-	    if git clone http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/26/ dgof 2> gitclone.out
-	    then
-	      cat gitclone.out 1>&2
-	    else
-	      cp gitclone.out newusk
-	      sed -i '$s/.*USK@/USK@/p;d' newusk
-	      sed -i 's,\\(/dgof/[0-9]*/\\).*,\\1,' newusk
-	      git clone http://localhost:8888/freenet:$(cat newusk) dgof
-	    fi
-	    '''
-	}
 	// Remove empty directories
 	// The script for some reason creates empty directories
 	// with adding @tmp at the end of the filename.
