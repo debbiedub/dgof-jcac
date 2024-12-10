@@ -142,7 +142,7 @@ def gen_cl(name, mirrors, fetchURI) {
 	int result2 = 0
 	try {
 	  result2 = timeout(100) {
-	    sh returnStatus: true, script: 'rm -rf ' + "newclone.$name" + ' && PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$name/1 newclone.$name" + ' && rm -rf ' + "newclone.$name'
+	    sh returnStatus: true, script: 'rm -rf ' + "newclone.$name" + ' && PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$name/1 newclone.$name" + ' && rm -rf ' + "newclone.$name"
 	  }
 	} catch (FlowInterruptedException ex) {
 	  // We got timeout. Consider it as clone failed.
