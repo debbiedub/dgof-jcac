@@ -71,8 +71,8 @@ timestamps {
       // freesitemgr uses $HOME to find its dir (really os.path.expanduser("~"))
       // Both freesitemgr config and mirrors config points to dgof dir
       // using absolute path.
+      docker_image = docker.build('dgof:3', '--network=host')
       docker_params = "--network=host --env HOME='${env.WORKSPACE}' -v $mirrors:$mirrors -v $freesitemgrdir:${env.WORKSPACE}/.freesitemgr"
-      docker_image = docker.build('dgof:3')
     }
   }
 
