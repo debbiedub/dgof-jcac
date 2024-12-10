@@ -68,11 +68,8 @@ timestamps {
   RUN pip3 install pyFreenet3
   RUN pip3 install git+http://localhost:8888/$(curl http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/0/ | sed '/Permanent/s/.*freenet://;s/".*//;s/@/%40/')
       '''
-      // freesitemgr uses $HOME to find its dir (really os.path.expanduser("~"))
-      // Both freesitemgr config and mirrors config points to dgof dir
-      // using absolute path.
       docker_image = docker.build('dgof:3', '--network=host .')
-      docker_params = "--network=host --env HOME='${-> env.WORKSPACE}' -v $mirrors:$mirrors -v $freesitemgrdir:${-> env.WORKSPACE}/.freesitemgr"
+      docker_params = "--network=host -v $mirrors:$mirrors -v $freesitemgrdir:$freesitemgrdir"
     }
   }
 
@@ -112,7 +109,7 @@ def gen_cl(name, mirrors, fetchURI) {
 	def lap = preparation_laps++
 	echo "$name: Start pre-check lap $lap"
 	int result1 = timeout(30) {
-	  sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
+	  sh returnStatus: true, script: """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
 		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
 	}
 	if (result1 == 0 &&      // grep found something
@@ -170,14 +167,14 @@ def gen_cl(name, mirrors, fetchURI) {
 	cloning_done = true
 	if (result2 != 0) {
 	  timeout(100) {
-	    sh "freesitemgr --cron reinsert $name"
+	    sh "freesitemgr --cron --config-dir $freesitemgrdir reinsert $name"
 	  }
 	  unstable "$name: Could not clone the repo. Repo reinserted."
 	  // There is no point in doing update immediately after reinsert.
 	  return 600
 	} else {
 	  timeout(100) {
-	    sh "freesitemgr --cron update $name"
+	    sh "freesitemgr --cron --config-dir $freesitemgrdir update $name"
 	  }
 	  // For the case where there is no update (most cases), let's proceed
 	  // immediately to the check.
@@ -188,7 +185,7 @@ def gen_cl(name, mirrors, fetchURI) {
 	def lap = upload_laps++
 	echo "$name: Start wait for upload lap $lap"
 	int result3 = timeout(30) {
-	  sh returnStatus: true, script: """freesitemgr --no-insert update $name | tee output.txt
+	  sh returnStatus: true, script: """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
 		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
 	}
 	if (result3 == 0) {        // grep found something
