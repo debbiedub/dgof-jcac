@@ -75,8 +75,6 @@ timestamps {
 
 
   stage('List') {
-    // Get and/or install dgof into the workspace
-    // Commands using dgof will need $(pwd)/dgof to be added to the PATH
     node ('debbies') {
       docker_image.inside(docker_params) {
 	// Remove empty directories
@@ -109,7 +107,7 @@ def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
 	def lap = preparation_laps++
 	echo "$name: Start pre-check lap $lap"
 	int result1 = timeout(30) {
-	  sh returnStatus: true, script: """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
+	  sh returnStatus: true, script: 'HOME=$(pwd) ' + """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
 		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
 	}
 	if (result1 == 0 &&      // grep found something
@@ -127,7 +125,7 @@ def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
 	int result2 = 0
 	try {
 	  result2 = timeout(100) {
-	    sh returnStatus: true, script: 'rm -rf ' + "newclone.$name" + ' && PATH="$PATH:$(pwd)/dgof" git clone ' + "freenet::$fetchURI$name/1 newclone.$name" + ' && rm -rf ' + "newclone.$name"
+	    sh returnStatus: true, script: 'rm -rf ' + "newclone.$name" + ' && HOME=$(pwd) git clone ' + "freenet::$fetchURI$name/1 newclone.$name" + ' && rm -rf ' + "newclone.$name"
 	  }
 	} catch (FlowInterruptedException ex) {
 	  // We got timeout. Consider it as clone failed.
@@ -150,7 +148,7 @@ def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
 	dir ("$mirrors/$name") {
 	  // Get new things from the mirrored repos
 	  // Add a file with the used versions of the tools      
-	  sh '''git fetch --all && git push freenet &&
+	  sh '''git fetch --all && HOME=$(pwd) git push freenet &&
 	    cd $(git config --get remote.freenet.pushurl || 
 		 git config --get remote.freenet.url) &&
 	    git --version > v.new &&
@@ -167,14 +165,14 @@ def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
 	cloning_done = true
 	if (result2 != 0) {
 	  timeout(100) {
-	    sh "freesitemgr --cron --config-dir $freesitemgrdir reinsert $name"
+	    sh 'HOME=$(pwd) ' + "freesitemgr --cron --config-dir $freesitemgrdir reinsert $name"
 	  }
 	  unstable "$name: Could not clone the repo. Repo reinserted."
 	  // There is no point in doing update immediately after reinsert.
 	  return 600
 	} else {
 	  timeout(100) {
-	    sh "freesitemgr --cron --config-dir $freesitemgrdir update $name"
+	    sh 'HOME=$(pwd) ' + "freesitemgr --cron --config-dir $freesitemgrdir update $name"
 	  }
 	  // For the case where there is no update (most cases), let's proceed
 	  // immediately to the check.
@@ -185,7 +183,7 @@ def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
 	def lap = upload_laps++
 	echo "$name: Start wait for upload lap $lap"
 	int result3 = timeout(30) {
-	  sh returnStatus: true, script: """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
+	  sh returnStatus: true, script: 'HOME=$(pwd) + """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
 		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
 	}
 	if (result3 == 0) {        // grep found something
