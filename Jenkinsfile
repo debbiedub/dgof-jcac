@@ -183,7 +183,7 @@ def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
 	def lap = upload_laps++
 	echo "$name: Start wait for upload lap $lap"
 	int result3 = timeout(30) {
-	  sh returnStatus: true, script: 'HOME=$(pwd) + """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
+	  sh returnStatus: true, script: 'HOME=$(pwd) ' + """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
 		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
 	}
 	if (result3 == 0) {        // grep found something
