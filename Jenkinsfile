@@ -85,7 +85,7 @@ timestamps {
 // Whenever it needs to sleep it returns the amount of seconds to sleep.
 // This is run in a way so that the node is released when sleeping
 // to allow other legs in the parallel execution to run.
-def gen_cl(name, mirrors, fetchURI) {
+def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
   boolean preparation_done = false
   boolean cloning_done = false
   boolean upload_done = false
@@ -95,7 +95,6 @@ def gen_cl(name, mirrors, fetchURI) {
   int upload_laps = 1
 
   return {
-    def freesitemgrdir = "$mirrors/.${name}.config"
     if (!preparation_done) {
 	def lap = preparation_laps++
 	echo "$name: Start pre-check lap $lap"
@@ -202,7 +201,7 @@ timestamps {
   dirnames.each { dirname ->
     buildParallelMap[dirname] = {
       stage(dirname) {
-	def cl = gen_cl(dirname, mirrors, fetchURI)
+	def cl = gen_cl(dirname, "$mirrors/.${name}.config", mirrors, fetchURI)
 	def result = 1
 	// The closure cl is run using cl() on the node
 	// When it cannot do anymore (completed or needs to
