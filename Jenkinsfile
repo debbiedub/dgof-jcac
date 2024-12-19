@@ -85,7 +85,7 @@ timestamps {
 // Whenever it needs to sleep it returns the amount of seconds to sleep.
 // This is run in a way so that the node is released when sleeping
 // to allow other legs in the parallel execution to run.
-def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
+def gen_cl(name, mirrors, fetchURI) {
   boolean preparation_done = false
   boolean cloning_done = false
   boolean upload_done = false
