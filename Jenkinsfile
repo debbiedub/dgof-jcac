@@ -95,7 +95,7 @@ def gen_cl(name, mirrors, fetchURI) {
   int upload_laps = 1
 
   return {
-    freesitemgrdir = "$mirrors/.${name}.config"
+    def freesitemgrdir = "$mirrors/.${name}.config"
     if (!preparation_done) {
 	def lap = preparation_laps++
 	echo "$name: Start pre-check lap $lap"
