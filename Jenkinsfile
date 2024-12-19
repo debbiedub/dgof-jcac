@@ -95,6 +95,7 @@ def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
   int upload_laps = 1
 
   return {
+    def freesitemgrdir = "$mirrors/.${name}.config"
     if (!preparation_done) {
 	def lap = preparation_laps++
 	echo "$name: Start pre-check lap $lap"
@@ -201,7 +202,7 @@ timestamps {
   dirnames.each { dirname ->
     buildParallelMap[dirname] = {
       stage(dirname) {
-	def cl = gen_cl(dirname, "$mirrors/.${name}.config", mirrors, fetchURI)
+	def cl = gen_cl(dirname, mirrors, fetchURI)
 	def result = 1
 	// The closure cl is run using cl() on the node
 	// When it cannot do anymore (completed or needs to
