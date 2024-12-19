@@ -1,32 +1,29 @@
 // The common preparation
 // 1. Install pyFreenet3 (could be prepared in the docker image used)
 // 2. "install" dgof     (could be prepared in the docker image used)
-// 3. Set up ~/freesitemgr-dgof-jcac as a config dir for freesitemgr
-//    This is probably easiest done by adding a site using
-//      freesitemgr --config-dir=~/freesitemgr-dgof-jcac add
-//    and then removing it again.  The dir ~/freesitemgr-dgof-jcac
-//    exists outside of the docker container.  Inside the docker
-//    containers it is mapped to $HOME/.freesitemgr so --config-dir
-//    need not be specified on the command line.  The reason for
-//    not using a docker volume is to make it easier to access from
-//    the outside, like when setting up new repos.
 //
 // The logic for every repo outside of Jenkins:
-// 1. git clone --mirror URL name
+// 1. In the MIRRORS_DIR:
+//      git clone --mirror URL name
 //    name is specified to not get the the .git suffix
 // 2. dgof-setup --as-maintainer --bootstrap name (after doing cd name)
 //    Add the private URI that matches the FETCH_URI of the jenkins
 //    configuration and is suffixed with name
 //    If it fails because of the cannot pack into small enough files,
-//    redo without --bootstrap and the repo will not be available
-//    without dgof
+//    remove the dgof directory and redo without --bootstrap and the
+//    repo will not be available without dgof
 // 3. Deactivate the default update for the freenet remote for the mirrored
 //    repo:
 //      git config remote.freenet.skipDefaultUpdate true
 // 4. Remove the freesitemgr update command and the echos from the
 //    post-update hook in the dgof/name/hooks directory
 // 5. Make the first freesitemgr update
-// 6. Move the freesitemgr file from ~/.freesitemgr to ~/freesitemgr-dgof-jcac
+// 6. Set up MIRROR_DIR/.name.config as a config dir for freesitemgr
+//    for that repo.
+//    This is probably easiest done by creating the dir an copying
+//    the .config file from another such dir.
+// 7. Move the freesitemgr file from ~/.freesitemgr to the
+//    MIRROR_DIR/.name.config directory.
 // 
 //
 // Within this job, for every repo
@@ -38,17 +35,12 @@
 // If started with "bootstrap" and then "growing out of it", remove
 // the blocking lines in post-update hook to be able to run the repo.
 //
-// This job assumes that when allocating the same node and creating
-// a new container with the same image, the same workspace is used.
-// This is only true if there is a single executor on the node.
-//
 // Fetch-URI is in the Jenkins settings. Private-URI in the freesitemgr config.
 
 import org.jenkinsci.plugins.workflow.steps.FlowInterruptedException
 
 def fetchURI = "${env.FETCH_URI}"
 
-def freesitemgrdir = '/home/debbiedub/freesitemgr-dgof-jcac'
 def mirrors = "${env.MIRRORS_DIR}"
 
 // global variables:
@@ -69,7 +61,7 @@ timestamps {
   RUN pip3 install git+http://localhost:8888/$(curl http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/0/ | sed '/Permanent/s/.*freenet://;s/".*//;s/@/%40/')
       '''
       docker_image = docker.build('dgof:3', '--network=host .')
-      docker_params = "--network=host -v $mirrors:$mirrors -v $freesitemgrdir:$freesitemgrdir"
+      docker_params = "--network=host -v $mirrors:$mirrors"
     }
   }
 
@@ -93,7 +85,7 @@ timestamps {
 // Whenever it needs to sleep it returns the amount of seconds to sleep.
 // This is run in a way so that the node is released when sleeping
 // to allow other legs in the parallel execution to run.
-def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
+def gen_cl(name, mirrors, fetchURI) {
   boolean preparation_done = false
   boolean cloning_done = false
   boolean upload_done = false
@@ -103,6 +95,7 @@ def gen_cl(name, freesitemgrdir, mirrors, fetchURI) {
   int upload_laps = 1
 
   return {
+    freesitemgrdir = $mirrors/.$name.config
     if (!preparation_done) {
 	def lap = preparation_laps++
 	echo "$name: Start pre-check lap $lap"
@@ -209,7 +202,7 @@ timestamps {
   dirnames.each { dirname ->
     buildParallelMap[dirname] = {
       stage(dirname) {
-	def cl = gen_cl(dirname, freesitemgrdir, mirrors, fetchURI)
+	def cl = gen_cl(dirname, mirrors, fetchURI)
 	def result = 1
 	// The closure cl is run using cl() on the node
 	// When it cannot do anymore (completed or needs to
