@@ -23,12 +23,7 @@ pipeline {
   }
 
   stages {
-    stage('clean') {
-      steps {
-        sh '''rm -rf dgof all gitclone.out newusk'''
-      }
-    }
-    stage('Get dgof') {
+    stage('Get script') {
       steps {
         timeout(100) {
           sh '''
@@ -41,6 +36,7 @@ pipeline {
     }
     stage('fetch') {
       steps {
+        sh 'rm -rf all''
         sh 'mkdir -p all'
 	sh 'cd all && git init && git config gc.autoDetach false'
         sh 'cd all && ../http_fetch_all.sh 2>&1 | if grep redirect:; then false; else true; fi'
