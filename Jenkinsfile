@@ -16,7 +16,8 @@
 //    repo:
 //      git config remote.freenet.skipDefaultUpdate true
 // 4. Remove the freesitemgr update command and the echos from the
-//    post-update hook in the dgof/name/hooks directory
+//    post-update hook in the dgof/name/hooks directory and remove the
+//    pre-update hook
 // 5. Make the first freesitemgr update
 // 6. Set up MIRROR_DIR/.name.config as a config dir for freesitemgr
 //    for that repo.
