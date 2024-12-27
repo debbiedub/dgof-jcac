@@ -144,7 +144,7 @@ def gen_cl(name, mirrors, fetchURI) {
 	  def laps = fetching_laps++
 	  // Get new things from the mirrored repos
 	  // Add a file with the used versions of the tools      
-	  int result3 = sh returnstatus: laps < 5, script: '''git fetch --all &&
+	  int result3 = sh returnStatus: laps < 5, script: '''git fetch --all &&
             HOME=$(pwd) git push freenet &&
 	    cd $(git config --get remote.freenet.pushurl || 
 		 git config --get remote.freenet.url) &&
