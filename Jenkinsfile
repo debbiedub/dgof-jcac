@@ -93,6 +93,7 @@ def gen_cl(name, mirrors, fetchURI) {
 
   int preparation_laps = 1
   int cloning_laps = 1
+  int fetching_laps = 1
   int upload_laps = 1
 
   return {
@@ -140,9 +141,11 @@ def gen_cl(name, mirrors, fetchURI) {
 	  echo "$name: Cloning done lap $lap"
 	}
 	dir ("$mirrors/$name") {
+	  def laps = fetching_laps++
 	  // Get new things from the mirrored repos
 	  // Add a file with the used versions of the tools      
-	  sh '''git fetch --all && HOME=$(pwd) git push freenet &&
+	  int result3 = sh returnstatus: laps < 5, script: '''git fetch --all &&
+            HOME=$(pwd) git push freenet &&
 	    cd $(git config --get remote.freenet.pushurl || 
 		 git config --get remote.freenet.url) &&
 	    git --version > v.new &&
@@ -152,6 +155,13 @@ def gen_cl(name, mirrors, fetchURI) {
 	    freesitemgr --version >> v.new &&
 	    { cmp -s versions v.new && rm v.new || mv v.new versions; }
 	  '''
+	  if (result3 != 0) {
+	    if (lap < 5) {
+	      // Wait before trying again.
+	      echo "$name: Fetching failed lap $lap - will retry"
+              return 100 + 1000 * laps
+	    }
+	  }
 	}
 	// This is to handle the problem described in JENKINS-52750
 	sh "D=$mirrors/$name@tmp;" + 'if test -d $D; then rmdir $D; fi'
@@ -176,11 +186,11 @@ def gen_cl(name, mirrors, fetchURI) {
     if (!upload_done) {
 	def lap = upload_laps++
 	echo "$name: Start wait for upload lap $lap"
-	int result3 = timeout(30) {
+	int result4 = timeout(30) {
 	  sh returnStatus: true, script: 'HOME=$(pwd) ' + """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
 		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
 	}
-	if (result3 == 0) {        // grep found something
+	if (result4 == 0) {        // grep found something
 	  echo "$name: Wait for upload not completed lap $lap"
 	  if (lap < 30) {
 	    return 600 + lap * 18
