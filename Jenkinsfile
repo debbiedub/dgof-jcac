@@ -89,6 +89,7 @@ timestamps {
 def gen_cl(name, mirrors, fetchURI) {
   boolean preparation_done = false
   boolean cloning_done = false
+  boolean fetching_done = false
   boolean upload_done = false
 
   int preparation_laps = 1
@@ -114,10 +115,10 @@ def gen_cl(name, mirrors, fetchURI) {
 	preparation_done = true
     }
 
+    int result2 = 0
     if (!cloning_done) {
 	def lap = cloning_laps++
 	echo "$name: Start cloning lap $lap"
-	int result2 = 0
 	try {
 	  result2 = timeout(100) {
 	    sh returnStatus: true, script: 'rm -rf ' + "newclone.$name" + ' && HOME=$(pwd) git clone ' + "freenet::$fetchURI$name/1 newclone.$name" + ' && rm -rf ' + "newclone.$name"
@@ -140,6 +141,10 @@ def gen_cl(name, mirrors, fetchURI) {
 	} else {
 	  echo "$name: Cloning done lap $lap"
 	}
+	cloning_done = true
+    }
+
+    if (!fetching_done) {
 	dir ("$mirrors/$name") {
 	  def laps = fetching_laps++
 	  // Get new things from the mirrored repos
@@ -166,7 +171,6 @@ def gen_cl(name, mirrors, fetchURI) {
 	// This is to handle the problem described in JENKINS-52750
 	sh "D=$mirrors/$name@tmp;" + 'if test -d $D; then rmdir $D; fi'
 
-	cloning_done = true
 	if (result2 != 0) {
 	  timeout(100) {
 	    sh 'HOME=$(pwd) ' + "freesitemgr --cron --config-dir $freesitemgrdir reinsert $name"
