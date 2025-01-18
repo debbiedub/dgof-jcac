@@ -168,6 +168,8 @@ def gen_cl(name, mirrors, fetchURI) {
 	    }
 	  }
 	}
+	fetching_done = true
+
 	// This is to handle the problem described in JENKINS-52750
 	sh "D=$mirrors/$name@tmp;" + 'if test -d $D; then rmdir $D; fi'
 
