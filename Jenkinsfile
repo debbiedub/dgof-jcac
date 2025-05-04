@@ -6,6 +6,8 @@
 // 1. In the MIRRORS_DIR:
 //      git clone --mirror URL name
 //    name is specified to not get the the .git suffix
+//    This will create a remote named origin and that is expected by
+//    the script.
 // 2. dgof-setup --as-maintainer --bootstrap name (after doing cd name)
 //    Add the private URI that matches the FETCH_URI of the jenkins
 //    configuration and is suffixed with name
@@ -58,7 +60,8 @@ timestamps {
       writeFile file:'Dockerfile', text: '''
   FROM python:3
 
-  RUN pip3 install pyFreenet3 cmarkgfm
+  RUN pip3 install pyFreenet3
+  RUN pip3 install cmarkgfm
   RUN pip3 install git+http://localhost:8888/$(curl http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/0/ | sed '/Permanent/s/.*freenet://;s/".*//;s/@/%40/')
       '''
       docker_image = docker.build('dgof:3', '--network=host .')
@@ -150,7 +153,7 @@ def gen_cl(name, mirrors, fetchURI) {
 	  // Get new things from the mirrored repos
 	  // Add a file with the used versions of the tools      
 	  int result3 = sh returnStatus: laps < 5, script: '''git fetch --all &&
-	    HOME=$(pwd) dgof-copy-readme freenet &&
+	    HOME=$(pwd) dgof-copy-readme --description="Mirror of $(git remote get-url origin)" freenet &&
             HOME=$(pwd) git push freenet &&
 	    cd $(git config --get remote.freenet.pushurl || 
 		 git config --get remote.freenet.url) &&
