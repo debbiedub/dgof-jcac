@@ -17,13 +17,14 @@
 // 3. Deactivate the default update for the freenet remote for the mirrored
 //    repo:
 //      git config remote.freenet.skipDefaultUpdate true
-// 4. Remove the freesitemgr update command and the echos from the
-//    post-update hook in the dgof/name/hooks directory and remove the
-//    pre-update hook
+// 4. Remove, in the dgof/name/hooks directory,
+//    the freesitemgr update command and the echos after that from
+//    the post-update hook and
+//    the pre-receive hook
 // 5. Make the first freesitemgr update
 // 6. Set up MIRROR_DIR/.name.config as a config dir for freesitemgr
 //    for that repo.
-//    This is probably easiest done by creating the dir an copying
+//    This is probably easiest done by creating the dir and copying
 //    the .config file from another such dir.
 // 7. Move the freesitemgr file from ~/.freesitemgr to the
 //    MIRROR_DIR/.name.config directory.
