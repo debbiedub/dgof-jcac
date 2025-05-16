@@ -82,6 +82,7 @@ pipeline {
     }
     stage('fetch') {
       steps {
+        sh 'git prune'
         sh './fetch_all_setup.sh'
         sh './fetch_known_repos.sh'
         sh 'PATH=$PATH:$(pwd)/dgof git -C all fetch --all'
