@@ -85,7 +85,7 @@ pipeline {
         sh 'git prune'
         sh './fetch_all_setup.sh'
         sh './fetch_known_repos.sh'
-        sh 'PATH=$PATH:$(pwd)/dgof git -C all fetch --all'
+        sh 'PATH=$PATH:$(pwd)/dgof git -C all fetch --all --jobs 10'
         sh 'git -C all gc --prune=all'
       }
     }
