@@ -39,7 +39,8 @@ pipeline {
         sh 'rm -rf all'
         sh 'mkdir -p all'
 	sh 'cd all && git init && git config gc.autoDetach false'
-        sh 'cd all && ../http_fetch_all.sh 2>&1 | if grep redirect:; then false; else true; fi'
+        sh 'cd all && { sed \'s/^git fetch.*/& \&/\' < ../http_fetch_all.sh; grep \'git fetch\' < ../http_fetch_all.sh | sed \'s/.*/wait/\' } | sh 2>&1 | tee ../output.log'
+	sh 'if grep redirect: < output.log; then false; else true; fi'
       }
     }
   }
