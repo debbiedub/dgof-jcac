@@ -110,10 +110,24 @@ def gen_cl(name, mirrors, fetchURI) {
 	  sh returnStatus: true, script: 'HOME=$(pwd) ' + """freesitemgr --no-insert --config-dir $freesitemgrdir update $name | tee output.txt
 		egrep -v 'No update required|No update desired|site insert has completed|checking if a new insert is needed' < output.txt"""
 	}
-	if (result1 == 0 &&      // grep found something
-	    lap < 5) {
-	  echo "$name: Pre-check deferred lap $lap"
-	  return 1000 + lap * 22
+	if (result1 == 0) {
+ 	  // grep found something
+	  if (lap < 5) {
+	    echo "$name: Pre-check deferred lap $lap"
+	    return 1000 + lap * 22
+	  }
+	  if (lap < 6) {
+	    // At this point we have waited at least
+	    // 30 laps * 600s (during upload) + 5 laps * 1000s = 23000s > 6h
+	    // The update or reinsert below will create a new upload.
+	    echo "$name: Failed the pre-check. Aborting."
+	    timeout(100) {
+	      sh 'yes | HOME=$(pwd) ' + "freesitemgr --cron --config-dir $freesitemgrdir cancel $name"
+	    }
+	    return 100
+	  }
+	  // The cancel on the previous lap did not work
+	  error "$name: Pre-check failed after 'cancel' attempt"
 	}
 	echo "$name: Pre-check done lap $lap"
 	preparation_done = true
