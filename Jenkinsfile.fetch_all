@@ -82,11 +82,21 @@ pipeline {
     }
     stage('fetch') {
       steps {
-        sh 'git prune'
-        sh './fetch_all_setup.sh'
-        sh './fetch_known_repos.sh'
-        sh 'PATH=$PATH:$(pwd)/dgof git -C all fetch --all --jobs 10'
-        sh 'git -C all gc --prune=all'
+        timeout(100) {
+          sh 'git prune'
+          sh './fetch_all_setup.sh'
+          sh './fetch_known_repos.sh'
+	}
+        timeout(3*60*60) {
+          sh 'PATH=$PATH:$(pwd)/dgof git -C all fetch --all --jobs 10'
+	}
+      }
+    }
+    stage('git gc') {
+      steps {
+        timeout(10*60) {
+          sh 'git -C all gc --prune=all'
+	}
       }
     }
   }
