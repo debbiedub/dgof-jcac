@@ -5,8 +5,10 @@
 // The script will just check for updates and pull them fetching the
 // top of the site.
 //
-// The only difference between this and Jenkinsfile.fetch is some default
-// settings (parameter default value and trigger period).
+// The differences between this and Jenkinsfile.fetch is
+// - the default settings (parameter default value and trigger period).
+// - how often the job is triggered
+// - that we dont calculate the list of all uris
 
 pipeline {
   agent {
