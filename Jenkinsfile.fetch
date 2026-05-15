@@ -101,6 +101,7 @@ pipeline {
       steps {
         timeout(10*60) {
           sh "git -C all config -l | sed 's/^remote.*.url=//p;d' > all_repos.uris"
+	  sh "cat all_repos.uris"
         }
       }
     }
