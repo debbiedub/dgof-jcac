@@ -59,13 +59,15 @@ timestamps {
     node ('debbies') {
       deleteDir()
       writeFile file:'Dockerfile', text: '''
+  ARG FPROXYPORT="8888"
+
   FROM python:3
 
   RUN pip3 install pyFreenet3
   RUN pip3 install cmarkgfm
-  RUN pip3 install git+http://localhost:8888/$(curl http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/0/ | sed '/Permanent/s/.*freenet://;s/".*//;s/@/%40/')
+  RUN pip3 install git+http://localhost:${FPROXYPORT}/$(curl http://localhost:${FPROXYPORT}/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/0/ | sed '/Permanent/s/.*freenet://;s/".*//;s/@/%40/')
       '''
-      docker_image = docker.build('dgof:3', '--network=host .')
+      docker_image = docker.build('dgof:3', "--network=host ${FPROXYPORT-8888}.")
       docker_params = "--network=host -v $mirrors:$mirrors"
     }
   }

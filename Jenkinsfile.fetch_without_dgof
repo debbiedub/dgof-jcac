@@ -27,8 +27,9 @@ pipeline {
       steps {
         timeout(100) {
           sh '''
-            curl http://localhost:8888/$(curl http://localhost:8888/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/0/ | sed '/Permanent/s/.*freenet://;s/".*//;s/@/%40/')/http_fetch_all.sh?type=text/plain \
-	    	 > http_fetch_all.sh
+            fproxyport=${FPROXYPORT-8888}
+            curl http://localhost:$fproxyport/$(curl http://localhost:$fproxyport/freenet:USK@nrDOd1piehaN7z7s~~IYwH-2eK7gcQ9wAtPMxD8xPEs,y61pkcoRy-ccB7BHvLCzt3RUjeMILf8ox26NKvPZ-jk,AQACAAE/dgof/0/ | sed '/Permanent/s/.*freenet://;s/".*//;s/@/%40/')/http_fetch_all.sh?type=text/plain | \
+	      sed "s/localhost:8888/localhost:$fproxyport/g" > http_fetch_all.sh
             chmod +x http_fetch_all.sh
             '''
         }
